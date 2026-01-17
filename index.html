@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RETINA</title>
+    <title>Retina</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,12 @@
     <link rel="apple-touch-icon" href="Retina_icon.png">    
     <link rel="icon" type="image/png" href="Retina_icon.png">
     
-    <meta property="og:url" content="https://takuto1014.github.io/RGBGuessr/">
+    <meta property="og:url" content="https://takuto1014.github.io/Retina/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Retina">
     <meta property="og:description" content="Test your color sense.">
     <meta property="og:site_name" content="Retina">
-    <meta property="og:image" content="https://takuto1014.github.io/RGBGuessr/RgbGuessr共有.png">
+    <meta property="og:image" content="https://takuto1014.github.io/Retina/RgbGuessr共有.png">
 </head>
 <body>
 
@@ -129,7 +129,7 @@
 
         <section id="screen-daily" class="screen fade-in">
             <div class="game-header"><h2 class="game-title color-daily">Daily Color</h2><div id="daily-date-display" class="digital-timer" style="font-size:1rem;">202X.XX.XX</div></div>
-            <div class="single-color-display"><div id="daily-question-color" class="color-box large-box"></div></div>
+            <div class="single-color-display"><div id="daily-question-color" class="color-box large-box"><span class="overlay-text">?</span></div></div>
             <div class="slider-container glass-panel">
                 <div class="slider-row"><label class="label-r">R</label><input type="range" id="daily-R" class="custom-range range-r" min="0" max="255" value="128"><span id="daily-val-R" class="val-num">128</span></div>
                 <div class="slider-row"><label class="label-g">G</label><input type="range" id="daily-G" class="custom-range range-g" min="0" max="255" value="128"><span id="daily-val-G" class="val-num">128</span></div>
@@ -191,7 +191,7 @@
             <div id="rush-combo-display" class="rush-combo hidden">0 COMBO</div>
             <div id="rush-effect-container" style="position:fixed; top:30%; left:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:100;"></div>
             <div class="color-display-area">
-                <div class="color-panel"><span class="panel-label">TARGET</span><div id="rush-question-color" class="color-box"></div></div>
+                <div class="color-panel"><span class="panel-label">TARGET</span><div id="rush-question-color" class="color-box"><span class="overlay-text">?</span></div></div>
                 <div class="color-panel"><span class="panel-label">YOURS</span><div id="rush-input-color" class="color-box"></div></div>
             </div>
             <div class="slider-container glass-panel">
@@ -366,7 +366,7 @@
         <section id="screen-versus-battle" class="screen fade-in">
             <div class="game-header"><h2 class="game-title color-versus">Battle</h2><div id="versus-round-display" class="digital-timer" style="font-size:1rem;">Round 1</div></div>
             <div id="versus-opponent-status" class="opponent-status-bar" style="background:rgba(156, 136, 255, 0.1); color:var(--primary-multi); border-color:rgba(156, 136, 255, 0.2);">Waiting for answers...</div>
-            <div class="single-color-display"><div id="versus-question-color" class="color-box large-box"></div></div>
+            <div class="single-color-display"><div id="versus-question-color" class="color-box large-box"><span class="overlay-text">?</span></div></div>
             <div class="slider-container glass-panel">
                 <div class="slider-row"><label class="label-r">R</label><input type="range" id="versus-R" class="custom-range range-r" min="0" max="255" value="128"><span id="versus-val-R" class="val-num">128</span></div>
                 <div class="slider-row"><label class="label-g">G</label><input type="range" id="versus-G" class="custom-range range-g" min="0" max="255" value="128"><span id="versus-val-G" class="val-num">128</span></div>
