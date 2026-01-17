@@ -125,6 +125,10 @@
                     <h4>Versus</h4>
                     <p>2〜4人で遊べるリアルタイムバトル。人数に合わせて部屋を作り、同じ色を同時に解いて精度を競い合います。</p>
                 </div>
+                <div class="about-card">
+                    <h4>About "Ao5" (Average of 5)</h4>
+                    <p>直近5回の記録のうち、最高値と最低値を除いた3回の平均値。スピードキューブ等で用いられる、まぐれを除外した実力を測る指標です。</p>
+                </div>
             </div>
         </section>
 
@@ -410,6 +414,51 @@
     </footer>
     
     <canvas id="share-canvas" width="1200" height="800" style="display:none;"></canvas>
+
+    <div id="tutorial-overlay" class="tutorial-screen hidden">
+        <button id="tut-skip-btn" class="tut-skip" onclick="Tutorial.skip()">SKIP ►</button>
+        
+        <div id="tut-phase-1" class="tut-content">
+            <div class="tut-logo">
+                <img src="Retina_icon.png" alt="logo" class="tut-logo-img">
+                <span class="tut-logo-text">Retina</span>
+            </div>
+            <h1 id="tut-msg-1" class="tut-title hidden">Match the Color.</h1>
+        </div>
+        
+        <div id="tut-phase-2" class="tut-content hidden">
+            <div class="tut-demo-container">
+                <div id="tut-target-box" class="tut-target-box">
+                    <span class="tut-label-overlay">TARGET</span>
+                </div>
+                <div id="tut-user-box" class="tut-user-box">
+                    <span class="tut-label-overlay">YOU</span>
+                </div>
+            </div>
+            <div class="tut-controls-wrapper glass-panel">
+                <div class="slider-row">
+                    <label class="label-r">R</label>
+                    <input type="range" id="tut-range-r" class="custom-range range-r" min="0" max="255" value="0">
+                    <span id="tut-val-r" class="val-num">0</span>
+                </div>
+                <div class="slider-row">
+                    <label class="label-g">G</label>
+                    <input type="range" id="tut-range-g" class="custom-range range-g" min="0" max="255" value="0">
+                    <span id="tut-val-g" class="val-num">0</span>
+                </div>
+                <div class="slider-row">
+                    <label class="label-b">B</label>
+                    <input type="range" id="tut-range-b" class="custom-range range-b" min="0" max="255" value="0">
+                    <span id="tut-val-b" class="val-num">0</span>
+                </div>
+            </div>
+            <div id="tut-guide-text" class="tut-guide">Match Red</div>
+        </div>
+
+        <div id="tut-phase-3" class="tut-content hidden">
+            <h1 class="tut-title" style="font-size:2rem; animation:popIn 0.5s;">Let's Enjoy<br><span style="color:var(--primary-multi);">Retina</span></h1>
+        </div>
+    </div>
 
     <div id="custom-alert-modal" class="custom-modal-overlay hidden">
         <div class="custom-modal-box">

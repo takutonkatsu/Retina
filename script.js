@@ -354,7 +354,7 @@ const OriginGame = {
     }
 };
 
-// Rush Mode (Updated: Score Cap)
+// Rush Mode (Updated: Score Cap & End Game)
 const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,
     initialize: function() {
@@ -400,13 +400,18 @@ const RushGame = {
             this.combo++; this.score += (acc * 10) + (this.combo * 50); this.count++;
         }
         
-        // ★修正: スコア上限 99999999
-        if (this.score > 99999999) this.score = 99999999;
+        // ★修正: スコア上限 99999999 + 強制終了
+        if (this.score >= 99999999) {
+            this.score = 99999999;
+            this.endGame();
+            return;
+        }
         
         this.timeLeft += timeDelta; if (this.timeLeft < 0) this.timeLeft = 0; 
         this.triggerVisualEffect(timeDelta, isBad, acc.toFixed(2)+"%");
         if (this.timeLeft > 0) { this.setNextColor(); } else { this.endGame(); }
     },
+    // ... (triggerVisualEffect, endGame, clearSaveData are unchanged) ...
     triggerVisualEffect: function(delta, isBad, accStr) {
         const container = document.getElementById('rush-effect-container');
         const el = document.createElement('div'); el.className = 'time-popup';
@@ -1174,12 +1179,181 @@ const VersusGame = {
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
 
+// ... (Firebase Config, AppController, Utils, MenuLogic, OriginGame, RushGame, SurvivalGame, AnotherGame, DailyGame, VersusGame は前回の内容を維持) ...
+// ※文字数制限のため省略しますが、必ず前回のコードを使用してください。
+// ※下記に Tutorial オブジェクトと window.onload の変更点を記述します。
+
+// ★修正: 究極のチュートリアル (3段階デモ)
+const Tutorial = {
+    overlay: document.getElementById('tutorial-overlay'),
+    phase1: document.getElementById('tut-phase-1'),
+    phase2: document.getElementById('tut-phase-2'),
+    phase3: document.getElementById('tut-phase-3'),
+    
+    // Phase 1 Elements
+    msg1: document.getElementById('tut-msg-1'),
+    
+    // Phase 2 Elements
+    targetBox: document.getElementById('tut-target-box'),
+    userBox: document.getElementById('tut-user-box'),
+    guideText: document.getElementById('tut-guide-text'),
+    
+    // Sliders
+    rangeR: document.getElementById('tut-range-r'),
+    rangeG: document.getElementById('tut-range-g'),
+    rangeB: document.getElementById('tut-range-b'),
+    valR: document.getElementById('tut-val-r'),
+    valG: document.getElementById('tut-val-g'),
+    valB: document.getElementById('tut-val-b'),
+
+    currentStage: 0,
+
+    start: function() {
+        this.overlay.classList.remove('hidden');
+        this.phase1.classList.remove('hidden');
+        this.phase2.classList.add('hidden');
+        this.phase3.classList.add('hidden');
+        this.msg1.classList.add('hidden');
+
+        // Animation Sequence: Logo -> Text -> Demo
+        setTimeout(() => {
+            this.msg1.classList.remove('hidden'); // Show "Match the Color"
+            setTimeout(() => {
+                this.phase1.style.opacity = '0';
+                this.phase1.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    this.phase1.classList.add('hidden');
+                    this.startDemoPhase();
+                }, 500);
+            }, 2000);
+        }, 1500);
+    },
+
+    skip: function() {
+        this.overlay.style.opacity = '0';
+        this.overlay.style.transition = 'opacity 0.3s';
+        setTimeout(() => {
+            this.overlay.classList.add('hidden');
+            localStorage.setItem('visited', 'true');
+        }, 300);
+    },
+
+    startDemoPhase: function() {
+        this.phase2.classList.remove('hidden');
+        this.startStage1();
+    },
+
+    // --- Stage 1: RED (255, 0, 0) ---
+    startStage1: function() {
+        this.currentStage = 1;
+        this.guideText.className = "tut-guide";
+        this.guideText.innerText = "Slide Red to 255";
+        
+        // Setup Colors
+        this.setTargetColor(255, 0, 0);
+        this.setUserColor(0, 0, 0);
+
+        // Setup Sliders
+        this.setupSlider(this.rangeR, this.valR, 0, false); // Active
+        this.setupSlider(this.rangeG, this.valG, 0, true);  // Disabled
+        this.setupSlider(this.rangeB, this.valB, 0, true);  // Disabled
+
+        this.rangeR.oninput = (e) => {
+            const val = parseInt(e.target.value);
+            this.valR.innerText = val;
+            this.setUserColor(val, 0, 0);
+            if (val === 255) this.stageClear(this.startStage2.bind(this));
+        };
+    },
+
+    // --- Stage 2: ORANGE (255, 128, 0) ---
+    startStage2: function() {
+        this.currentStage = 2;
+        this.guideText.className = "tut-guide";
+        this.guideText.innerText = "Slide Green to 128";
+
+        this.setTargetColor(255, 128, 0);
+        
+        // R is fixed at 255 from previous stage
+        this.setupSlider(this.rangeR, this.valR, 255, true); 
+        this.setupSlider(this.rangeG, this.valG, 0, false); // Active
+        this.setupSlider(this.rangeB, this.valB, 0, true);
+
+        this.rangeG.oninput = (e) => {
+            const val = parseInt(e.target.value);
+            this.valG.innerText = val;
+            this.setUserColor(255, val, 0);
+            if (val === 128) this.stageClear(this.startStage3.bind(this));
+        };
+    },
+
+    // --- Stage 3: PINK (255, 128, 255) ---
+    startStage3: function() {
+        this.currentStage = 3;
+        this.guideText.className = "tut-guide";
+        this.guideText.innerText = "Slide Blue to 255";
+
+        this.setTargetColor(255, 128, 255);
+
+        this.setupSlider(this.rangeR, this.valR, 255, true);
+        this.setupSlider(this.rangeG, this.valG, 128, true);
+        this.setupSlider(this.rangeB, this.valB, 0, false); // Active
+
+        this.rangeB.oninput = (e) => {
+            const val = parseInt(e.target.value);
+            this.valB.innerText = val;
+            this.setUserColor(255, 128, val);
+            if (val === 255) this.stageClear(this.showFinale.bind(this));
+        };
+    },
+
+    // --- Helper Functions ---
+    setTargetColor: function(r, g, b) {
+        this.targetBox.style.backgroundColor = `rgb(${r},${g},${b})`;
+    },
+    setUserColor: function(r, g, b) {
+        this.userBox.style.backgroundColor = `rgb(${r},${g},${b})`;
+    },
+    setupSlider: function(el, valEl, val, disabled) {
+        el.value = val;
+        el.disabled = disabled;
+        valEl.innerText = val;
+        el.oninput = null; // Clear previous listener
+    },
+    stageClear: function(nextCallback) {
+        // Disable current active slider
+        if(this.currentStage === 1) this.rangeR.disabled = true;
+        if(this.currentStage === 2) this.rangeG.disabled = true;
+        if(this.currentStage === 3) this.rangeB.disabled = true;
+
+        this.guideText.className = "tut-perfect";
+        this.guideText.innerText = "PERFECT!";
+        
+        setTimeout(() => {
+            nextCallback();
+        }, 1200);
+    },
+
+    showFinale: function() {
+        this.phase2.classList.add('hidden');
+        this.phase3.classList.remove('hidden');
+        
+        setTimeout(() => {
+            this.skip(); // Close tutorial
+        }, 2500);
+    }
+};
+
 // ▼ Initialize App
 window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     
     MenuLogic.init();
+
+    // ★修正: チュートリアル実行判定 (強制実行)
+    // 本番時はここを: if (!localStorage.getItem('visited')) { Tutorial.start(); } に変更
+    Tutorial.start();
 
     if (roomParam) {
         const savedName = localStorage.getItem("friend_name");
