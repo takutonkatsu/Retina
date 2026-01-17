@@ -306,6 +306,38 @@
             </div>
             <button id="survival-guess-btn" class="main-action-btn">GUESS</button>
         </section>
+        <section id="screen-result-survival" class="screen fade-in result-screen">
+            <div class="game-header"><h2 class="game-title color-survival">Survival</h2></div>
+            
+            <h2 id="survival-score-text" class="result-title-big"></h2>
+            
+            <div class="result-score-block">
+                <div class="score-item">
+                    <span class="label">SCORE</span>
+                    <span id="survival-result-score" class="val"></span>
+                </div>
+                <div class="score-divider">/</div>
+                <div class="score-item">
+                    <span class="label">GOAL</span>
+                    <span id="survival-result-goal" class="val"></span>
+                </div>
+            </div>
+
+            <div id="survival-new-record" class="new-record hidden">NEW RECORD!</div>
+
+            <div class="compare-row">
+                <div class="compare-item"><p class="compare-label">TARGET</p><div id="survival-ans-color" class="mini-box"></div><span id="survival-ans-text"></span></div>
+                <div class="compare-item"><p class="compare-label">YOU</p><div id="survival-your-color" class="mini-box"></div><span id="survival-your-text"></span></div>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="survival-next-btn" class="btn-primary">NEXT STAGE</button>
+                <button onclick="AppController.returnToMenu()" class="btn-text">EXIT GAME</button>
+            </div>
+
+            <div style="margin-top: 15px; font-size: 0.8rem; color: #888;">Max Stage: <span id="survival-pb" style="color:#fff; font-weight:bold;"></span></div>
+            <div id="survival-history" class="history-log"></div>
+        </section>
 
         <section id="screen-anotherworld" class="screen fade-in">
             <div class="game-header"><h2 class="game-title color-storage">Color Storage</h2></div>
