@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retina</title>
+    <title>Retina - RGB色彩感覚テストゲーム</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,12 +15,13 @@
     <link rel="apple-touch-icon" href="Retina_icon.png">    
     <link rel="icon" type="image/png" href="Retina_icon.png">
     
+    <meta name="description" content="Retinaは、RGB数値を推測して色彩感覚を鍛えるブラウザゲームです。Origin、Rush、Survival、Versusの4つのモードで、あなたの「色の見極め力」をテストしましょう。">
     <meta property="og:url" content="https://takuto1014.github.io/Retina/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Retina">
     <meta property="og:description" content="Test your color sense.">
     <meta property="og:site_name" content="Retina">
-    <meta property="og:image" content="https://takuto1014.github.io/Retina/RgbGuessr共有.png">
+    <meta property="og:image" content="https://takuto1014.github.io/Retina/share_img.png">
 </head>
 <body>
 
@@ -28,11 +29,11 @@
     <div class="bg-orb orb-2"></div>
 
     <header class="app-header">
-        <div class="logo" id="app-logo" onclick="app.backToMenu()">
+        <div class="logo" id="app-logo" onclick="AppController.returnToMenu()">
             <img src="Retina_icon.png" alt="icon" class="logo-icon" id="source-logo-icon">
-            <span class="logo-text">RETINA</span>
+            <span class="logo-text">Retina</span>
         </div>
-        <button id="back-btn" class="nav-btn hidden" onclick="app.backToMenu()">
+        <button id="back-btn" class="nav-btn hidden" onclick="AppController.returnToMenu()">
             <span class="icon">✕</span> Close
         </button>
     </header>
@@ -45,7 +46,7 @@
                 <h1 class="hero-title">Master the <span class="char-r">R</span><span class="char-g">G</span><span class="char-b">B</span></h1>
             </div>
 
-            <div class="daily-section" onclick="app.startGame('daily')">
+            <div class="daily-section" onclick="AppController.startGameMode('daily')">
                 <div class="daily-main-container">
                     <div id="menu-daily-color-preview" class="daily-preview-large"></div>
                     <div class="daily-content">
@@ -59,7 +60,7 @@
             </div>
 
             <div class="menu-grid">
-                <div class="game-card card-origin" onclick="app.startGame('origin')">
+                <div class="game-card card-origin" onclick="AppController.startGameMode('origin')">
                     <div class="std-badge">STANDARD</div>
                     <div class="card-icon">🧠</div>
                     <div class="card-content">
@@ -69,7 +70,7 @@
                     </div>
                 </div>
 
-                <div class="game-card card-rush" onclick="app.startGame('rush')">
+                <div class="game-card card-rush" onclick="AppController.startGameMode('rush')">
                     <div class="card-icon">⚡</div>
                     <div class="card-content">
                         <h3>Rush</h3>
@@ -78,7 +79,7 @@
                     </div>
                 </div>
 
-                <div class="game-card card-survival" onclick="app.startGame('survival')">
+                <div class="game-card card-survival" onclick="AppController.startGameMode('survival')">
                     <div class="card-icon">🔥</div>
                     <div class="card-content">
                         <h3>Survival</h3>
@@ -87,7 +88,7 @@
                     </div>
                 </div>
 
-                <div class="game-card card-versus" onclick="app.startGame('versus')">
+                <div class="game-card card-versus" onclick="AppController.startGameMode('versus')">
                     <div class="card-icon">⚔️</div>
                     <div class="card-content">
                         <h3>Versus</h3>
@@ -98,7 +99,7 @@
             </div>
             
             <div id="another-world-entrance" class="hidden text-center" style="margin-top: 40px;">
-                <button class="glitch-btn" onclick="app.triggerSecret()">ENTER THE VOID</button>
+                <button class="glitch-btn" onclick="AppController.handleEasterEgg()">ENTER THE VOID</button>
             </div>
             <div id="god-badge-area" class="text-center" style="margin-top: 20px; opacity: 0.8;"></div>
             
@@ -118,7 +119,7 @@
                 </div>
                 <div class="about-card about-survival">
                     <h4>Survival</h4>
-                    <p>ステージ進行と共に厳しくなるノルマ。一度のミスも許されないプレッシャーの中で、自身の限界到達点を探る上級者向けサバイバル。</p>
+                    <p>ステージ進行と共に厳しくなるノルマ。一度のミスも許されないプレッシャーの中で、自身の限界到達点を探る全25ステージのサバイバル。</p>
                 </div>
                 <div class="about-card about-versus">
                     <h4>Versus</h4>
@@ -164,10 +165,10 @@
             </div>
 
             <div class="modal-buttons">
-                <button onclick="dailyGame.shareResult()" class="btn-share">
+                <button onclick="DailyGame.generateShareImage()" class="btn-share">
                     <span class="share-icon">📤</span> SHARE RESULT
                 </button>
-                <button onclick="app.backToMenu()" class="btn-text">BACK TO MENU</button>
+                <button onclick="AppController.returnToMenu()" class="btn-text">BACK TO MENU</button>
             </div>
         </section>
 
@@ -214,8 +215,8 @@
                 <div class="stat-box"><span class="stat-label">Best Score</span><span id="rush-best" class="stat-value highlight">--</span></div>
             </div>
             <div class="modal-buttons">
-                <button onclick="rushGame.init()" class="btn-primary"><span class="btn-icon">↻</span> RETRY</button>
-                <button onclick="rushGame.resetData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
+                <button onclick="RushGame.initialize()" class="btn-primary"><span class="btn-icon">↻</span> RETRY</button>
+                <button onclick="RushGame.clearSaveData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
             </div>
         </section>
 
@@ -244,9 +245,9 @@
                 <div class="stat-box"><span class="stat-label">AO5 BEST</span><span id="origin-ao5" class="stat-value">--</span></div>
             </div>
             <div class="modal-buttons">
-                <button onclick="originGame.nextColor()" class="btn-primary"><span class="btn-icon">▶</span> NEXT COLOR</button>
-                <button onclick="originGame.shareResult()" class="btn-share"><span class="share-icon">📤</span> SHARE RESULT</button>
-                <button onclick="originGame.resetData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
+                <button onclick="OriginGame.proceedToNextColor()" class="btn-primary"><span class="btn-icon">▶</span> NEXT COLOR</button>
+                <button onclick="OriginGame.generateShareImage()" class="btn-share"><span class="share-icon">📤</span> SHARE RESULT</button>
+                <button onclick="OriginGame.clearSaveData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
             </div>
             <div id="origin-history" class="history-log"></div>
         </section>
@@ -292,7 +293,7 @@
             </div>
             <div class="modal-buttons">
                 <button id="survival-next-btn" class="btn-primary"><span class="btn-icon">▶</span> NEXT STAGE</button>
-                <button onclick="survivalGame.resetData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
+                <button onclick="SurvivalGame.clearSaveData()" class="btn-text" style="font-size:0.7rem; color:#555;">Reset Data</button>
             </div>
             <div id="survival-history" class="history-log"></div>
         </section>
@@ -305,10 +306,10 @@
                 <div class="slider-row"><label class="label-g">G</label><input type="range" id="another-G" class="custom-range range-g" min="0" max="255" value="128"><span id="another-val-G" class="val-num">128</span></div>
                 <div class="slider-row"><label class="label-b">B</label><input type="range" id="another-B" class="custom-range range-b" min="0" max="255" value="128"><span id="another-val-B" class="val-num">128</span></div>
             </div>
-            <button class="main-action-btn" onclick="anotherGame.saveColor()">SAVE COLOR</button>
-            <button onclick="anotherGame.shareStorage()" class="btn-share" style="margin-top:15px; width:100%;"><span class="share-icon">📤</span> SHARE ALL</button>
+            <button class="main-action-btn" onclick="AnotherGame.saveColorToStorage()">SAVE COLOR</button>
+            <button onclick="AnotherGame.generateShareImage()" class="btn-share" style="margin-top:15px; width:100%;"><span class="share-icon">📤</span> SHARE ALL</button>
             <div id="another-history" class="history-log" style="margin-top:30px;"></div>
-            <div style="text-align:center; margin-top:20px;"><button onclick="anotherGame.resetData()" class="btn-text" style="color:#555;">Delete All</button></div>
+            <div style="text-align:center; margin-top:20px;"><button onclick="AnotherGame.clearSaveData()" class="btn-text" style="color:#555;">Delete All</button></div>
         </section>
 
         <section id="screen-versus-menu" class="screen fade-in" style="text-align:center;">
@@ -323,10 +324,10 @@
                 <p style="color:#666; font-size:0.7rem; margin-top:5px;">Enter "0" for Endless Mode</p>
             </div>
             <div class="menu-grid">
-                <div class="game-card" style="border-color:var(--primary-multi);" onclick="versusGame.createRoom()">
+                <div class="game-card" style="border-color:var(--primary-multi);" onclick="VersusGame.createRoom()">
                     <div class="card-icon">🏠</div><div class="card-content"><h3>CREATE ROOM</h3><p>部屋を作成</p></div>
                 </div>
-                <div class="game-card" style="border-color:var(--primary-multi);" onclick="versusGame.showJoinScreen()">
+                <div class="game-card" style="border-color:var(--primary-multi);" onclick="VersusGame.displayJoinScreen()">
                     <div class="card-icon">🔑</div><div class="card-content"><h3>JOIN ROOM</h3><p>部屋に参加</p></div>
                 </div>
             </div>
@@ -336,7 +337,7 @@
             <div class="game-header"><h2 class="game-title color-versus">Join Room</h2></div>
             <p>Enter 4-digit Room ID</p>
             <input type="tel" pattern="\d*" maxlength="4" id="versus-room-input" placeholder="0000" class="room-id-input" style="border-bottom-color:var(--primary-multi);">
-            <button class="main-action-btn" onclick="versusGame.joinRoom()">JOIN</button>
+            <button class="main-action-btn" onclick="VersusGame.joinRoom()">JOIN</button>
         </section>
 
         <section id="screen-versus-lobby" class="screen fade-in" style="text-align:center;">
@@ -353,12 +354,12 @@
                 <p id="versus-p4-name" style="border-bottom:1px solid #333; padding:5px;">Guest 3: ---</p>
             </div>
 
-            <button onclick="versusGame.shareInviteLink()" class="btn-share" style="margin:20px auto; font-size:0.9rem; padding:10px 20px;">
+            <button onclick="VersusGame.shareInviteLink()" class="btn-share" style="margin:20px auto; font-size:0.9rem; padding:10px 20px;">
                 <span class="share-icon">📤</span> INVITE FRIENDS
             </button>
 
             <div id="host-start-area" class="hidden" style="margin-top:20px;">
-                <button onclick="versusGame.hostStartGame()" class="main-action-btn" style="background:var(--primary-multi);">START GAME</button>
+                <button onclick="VersusGame.hostStartGame()" class="main-action-btn" style="background:var(--primary-multi);">START GAME</button>
             </div>
             <p id="versus-status-text" class="status-text" style="margin-top:20px;">Waiting for players...</p>
         </section>
@@ -372,7 +373,7 @@
                 <div class="slider-row"><label class="label-g">G</label><input type="range" id="versus-G" class="custom-range range-g" min="0" max="255" value="128"><span id="versus-val-G" class="val-num">128</span></div>
                 <div class="slider-row"><label class="label-b">B</label><input type="range" id="versus-B" class="custom-range range-b" min="0" max="255" value="128"><span id="versus-val-B" class="val-num">128</span></div>
             </div>
-            <button id="versus-guess-btn" class="main-action-btn" onclick="versusGame.submitGuess()">GUESS</button>
+            <button id="versus-guess-btn" class="main-action-btn" onclick="VersusGame.submitGuess()">GUESS</button>
             <p id="versus-wait-msg" class="hidden" style="text-align:center; color:#888;">Waiting for others...</p>
         </section>
 
@@ -396,8 +397,8 @@
             </div>
 
             <div class="modal-buttons">
-                <button id="versus-continue-btn" onclick="versusGame.voteContinue()" class="btn-primary"><span class="btn-icon">▶</span> CONTINUE</button>
-                <button onclick="versusGame.confirmExit()" class="btn-text">Exit Room</button>
+                <button id="versus-continue-btn" onclick="VersusGame.voteContinue()" class="btn-primary"><span class="btn-icon">▶</span> CONTINUE</button>
+                <button onclick="VersusGame.confirmExit()" class="btn-text">Exit Room</button>
             </div>
             <p id="versus-continue-status" style="color:#888; font-size:0.8rem; margin-top:-10px; min-height:1.2em;"></p>
         </section>
@@ -405,10 +406,10 @@
     </main>
 
     <footer class="app-footer">
-        <div class="copyright" onclick="app.triggerSecret()">&copy; 2023-2025 Takutonkatsu</div>
+        <div class="copyright" onclick="AppController.handleEasterEgg()">&copy; 2023-2025 Takutonkatsu</div>
     </footer>
     
-    <canvas id="share-canvas" width="600" height="400" style="display:none;"></canvas>
+    <canvas id="share-canvas" width="1200" height="800" style="display:none;"></canvas>
 
     <div id="custom-alert-modal" class="custom-modal-overlay hidden">
         <div class="custom-modal-box">

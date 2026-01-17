@@ -113,9 +113,20 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .label-r { color: var(--accent-red); } .label-g { color: var(--accent-green); } .label-b { color: var(--accent-blue); }
 .custom-range { appearance: none; -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: #333; outline: none; margin: 0 12px; position: relative; cursor: pointer; }
 .range-r { background: linear-gradient(to right, #333, var(--accent-red)); } .range-g { background: linear-gradient(to right, #333, var(--accent-green)); } .range-b { background: linear-gradient(to right, #333, var(--accent-blue)); } .range-mono { background: linear-gradient(to right, #333, #fff); }
-.custom-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: none; border: 3px solid var(--bg-dark); margin-top: -8px; transition: transform 0.1s; }
-.custom-range::-webkit-slider-thumb:active { transform: scale(1.2); }
-.val-num { width: 35px; text-align: right; font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); font-weight: bold; flex-shrink: 0; }
+.custom-range::-webkit-slider-thumb { 
+    appearance: none; 
+    -webkit-appearance: none; 
+    width: 20px; 
+    height: 20px; 
+    border-radius: 50%; 
+    background: #fff; 
+    cursor: pointer; 
+    box-shadow: none; 
+    border: 3px solid var(--bg-dark); 
+    margin-top: -8px; /* これでバーの中央に来るように調整 */
+    transition: transform 0.1s; 
+}
+.custom-range::-webkit-slider-thumb:active { transform: scale(1.2); }.val-num { width: 35px; text-align: right; font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); font-weight: bold; flex-shrink: 0; }
 .main-action-btn { width: 100%; padding: 15px; border: none; border-radius: 14px; background: linear-gradient(135deg, #ffa502, #ff7043); color: #fff; font-size: 1rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; box-shadow: 0 8px 16px rgba(255, 165, 2, 0.3); transition: transform 0.1s, box-shadow 0.2s; }
 .main-action-btn:active { transform: scale(0.98); box-shadow: 0 4px 8px rgba(255, 165, 2, 0.2); }
 

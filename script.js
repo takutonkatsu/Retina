@@ -11,8 +11,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ▼ App Management
-const app = {
+// ▼ App Controller
+const AppController = {
     secretCount: 0,
     secretTimer: null,
 
@@ -50,7 +50,7 @@ const app = {
         if(backBtn) {
             if(screenId === 'menu') {
                 backBtn.classList.add('hidden');
-                menuLogic.init(); 
+                MenuLogic.init(); 
             } else {
                 backBtn.classList.remove('hidden');
             }
@@ -62,17 +62,17 @@ const app = {
         }
     },
 
-    backToMenu: function() {
-        if(versusGame.roomId) {
-            versusGame.confirmExit();
+    returnToMenu: function() {
+        if(VersusGame.roomId) {
+            VersusGame.confirmExit();
         } else {
-            if (dailyGame.timerInterval) clearInterval(dailyGame.timerInterval);
-            if (rushGame.timerInterval) clearInterval(rushGame.timerInterval);
+            if (DailyGame.timerInterval) clearInterval(DailyGame.timerInterval);
+            if (RushGame.timerInterval) clearInterval(RushGame.timerInterval);
             this.showScreen('menu');
         }
     },
 
-    startGame: function(mode) {
+    startGameMode: function(mode) {
         if(mode === 'versus') {
             this.showScreen('versus-menu');
             const savedName = localStorage.getItem("friend_name");
@@ -82,24 +82,24 @@ const app = {
         
         this.showScreen(mode);
         
-        if(mode === 'origin') originGame.init();
-        if(mode === 'survival') survivalGame.init();
-        if(mode === 'rush') rushGame.init();
-        if(mode === 'daily') dailyGame.init(); 
-        if(mode === 'anotherworld') anotherGame.init();
+        if(mode === 'origin') OriginGame.initialize();
+        if(mode === 'survival') SurvivalGame.initialize();
+        if(mode === 'rush') RushGame.initialize();
+        if(mode === 'daily') DailyGame.initialize(); 
+        if(mode === 'anotherworld') AnotherGame.initialize();
     },
 
-    triggerSecret: function() {
+    handleEasterEgg: function() {
         this.secretCount++;
         clearTimeout(this.secretTimer);
         this.secretTimer = setTimeout(() => { this.secretCount = 0; }, 1000); 
-        if(this.secretCount >= 5) { this.secretCount = 0; this.startGame('anotherworld'); }
+        if(this.secretCount >= 5) { this.secretCount = 0; this.startGameMode('anotherworld'); }
     }
 };
 
 // ▼ Utils
-const utils = {
-    randColor: function() {
+const Utils = {
+    generateRandomColor: function() {
         const r = Math.floor(Math.random() * 256);
         const g = Math.floor(Math.random() * 256);
         const b = Math.floor(Math.random() * 256);
@@ -119,7 +119,7 @@ const utils = {
         c= '0x'+c.join('');
         return [(c>>16)&255, (c>>8)&255, c&255].join(', ');
     },
-    calcScoreValue: function(target, input) {
+    calculateScoreValue: function(target, input) {
         const index = 2; 
         const sq = (target.r - input.r) ** index + (target.g - input.g) ** index + (target.b - input.b) ** index;
         const base = Math.max((255 - target.r) ** index, target.r ** index) + 
@@ -129,8 +129,8 @@ const utils = {
         if (accuracy < 0) accuracy = 0; 
         return accuracy * 100;
     },
-    calcScore: function(target, input) { 
-        return this.calcScoreValue(target, input).toFixed(2); 
+    calculateScore: function(target, input) { 
+        return this.calculateScoreValue(target, input).toFixed(2); 
     },
     getTodayString: function() {
         const d = new Date();
@@ -159,15 +159,15 @@ const utils = {
     }
 };
 
-const menuLogic = {
+const MenuLogic = {
     init: function() {
         const today = new Date();
         const ymd = (today.getFullYear()-2024)*400 + today.getMonth()*31 + today.getDate();
         const savedDate = localStorage.getItem("date_key");
         if(savedDate != ymd) { localStorage.setItem("date_key", ymd); }
 
-        this.showDualRecord("my_1record", "my_ao5record", "menu-original-record");
-        this.showDualRecord("rush_best", null, "menu-rush-record");
+        this.displayDualRecord("my_1record", "my_ao5record", "menu-original-record");
+        this.displayDualRecord("rush_best", null, "menu-rush-record");
         
         const stageRec = localStorage.getItem("4stage_record");
         const stageElem = document.getElementById("menu-survival-record");
@@ -185,13 +185,13 @@ const menuLogic = {
             else if (ao5Rec >= 98.00) rankClass = "logo-rank-purple";
             else if (ao5Rec >= 95.00) rankClass = "logo-rank-red";
             else if (ao5Rec >= 90.00) rankClass = "logo-rank-blue";
-            logoEl.innerHTML = `${iconHtml} <span class="logo-text ${rankClass}">RETINA</span>`;
+            logoEl.innerHTML = `${iconHtml} <span class="logo-text ${rankClass}">Retina</span>`;
         }
 
-        const todayStr = utils.getTodayString();
-        document.getElementById('menu-daily-date').innerText = utils.getFormattedDate();
+        const todayStr = Utils.getTodayString();
+        document.getElementById('menu-daily-date').innerText = Utils.getFormattedDate();
         
-        const dailyColor = utils.generateDailyColor(todayStr);
+        const dailyColor = Utils.generateDailyColor(todayStr);
         const previewEl = document.getElementById('menu-daily-color-preview');
         if(previewEl) {
             previewEl.style.backgroundColor = dailyColor.hex;
@@ -207,7 +207,7 @@ const menuLogic = {
             statusEl.className = "daily-status";
         }
     },
-    showDualRecord: function(singleKey, ao5Key, elemId) {
+    displayDualRecord: function(singleKey, ao5Key, elemId) {
         const sRec = localStorage.getItem(singleKey);
         const aRec = ao5Key ? localStorage.getItem(ao5Key) : null;
         const el = document.getElementById(elemId);
@@ -226,29 +226,29 @@ const menuLogic = {
 // ▼ Game Modes
 
 // Origin Mode
-const originGame = {
+const OriginGame = {
     questionColor: {},
-    init: function() {
+    initialize: function() {
         this.els = { R: document.getElementById('origin-R'), G: document.getElementById('origin-G'), B: document.getElementById('origin-B'), valR: document.getElementById('origin-val-R'), valG: document.getElementById('origin-val-G'), valB: document.getElementById('origin-val-B'), qColor: document.getElementById('origin-question-color') };
         const update = () => { this.els.valR.innerText = this.els.R.value; this.els.valG.innerText = this.els.G.value; this.els.valB.innerText = this.els.B.value; };
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
-        document.getElementById('origin-guess-btn').onclick = () => this.guess();
+        document.getElementById('origin-guess-btn').onclick = () => this.submitGuess();
         document.getElementById('origin-new-record').classList.add('hidden');
-        this.retry(); this.updateHistory();
+        this.startNewRound(); this.updateHistoryLog();
     },
-    retry: function() {
+    startNewRound: function() {
         const savedHex = localStorage.getItem("RGB_Temporary_Hex");
         if(savedHex) { const r = Number(localStorage.getItem("RGB_Temporary_R")); const g = Number(localStorage.getItem("RGB_Temporary_G")); const b = Number(localStorage.getItem("RGB_Temporary_B")); this.questionColor = { r, g, b, hex: savedHex }; }
-        else { this.questionColor = utils.randColor(); localStorage.setItem("RGB_Temporary_Hex", this.questionColor.hex); localStorage.setItem("RGB_Temporary_R", this.questionColor.r); localStorage.setItem("RGB_Temporary_G", this.questionColor.g); localStorage.setItem("RGB_Temporary_B", this.questionColor.b); }
+        else { this.questionColor = Utils.generateRandomColor(); localStorage.setItem("RGB_Temporary_Hex", this.questionColor.hex); localStorage.setItem("RGB_Temporary_R", this.questionColor.r); localStorage.setItem("RGB_Temporary_G", this.questionColor.g); localStorage.setItem("RGB_Temporary_B", this.questionColor.b); }
         this.els.qColor.style.backgroundColor = this.questionColor.hex; this.els.R.value = 128; this.els.G.value = 128; this.els.B.value = 128; this.els.R.oninput();
         document.getElementById('origin-new-record').classList.add('hidden');
     },
-    nextColor: function() { localStorage.removeItem("RGB_Temporary_Hex"); this.retry(); app.showScreen('origin'); },
-    guess: function() {
+    proceedToNextColor: function() { localStorage.removeItem("RGB_Temporary_Hex"); this.startNewRound(); AppController.showScreen('origin'); },
+    submitGuess: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value); const q = this.questionColor;
-        const score = utils.calcScore(q, {r, g, b});
+        const score = Utils.calculateScore(q, {r, g, b});
         let val = Number(localStorage.getItem("index")) || 1;
-        localStorage.setItem("score"+val, score); localStorage.setItem("answer_rgb16"+val, q.hex); localStorage.setItem("input_rgb16"+val, utils.rgbToHex(r,g,b));
+        localStorage.setItem("score"+val, score); localStorage.setItem("answer_rgb16"+val, q.hex); localStorage.setItem("input_rgb16"+val, Utils.rgbToHex(r,g,b));
         localStorage.setItem("answer_rgb"+val, `(${q.r},${q.g},${q.b})`); localStorage.setItem("input_rgb"+val, `(${r},${g},${b})`);
         
         let isNewRecord = false;
@@ -267,15 +267,15 @@ const originGame = {
         const recordEl = document.getElementById('origin-new-record');
         if(isNewRecord) recordEl.classList.remove('hidden'); else recordEl.classList.add('hidden');
         localStorage.setItem("index", val + 1); localStorage.removeItem("RGB_Temporary_Hex");
-        this.showResult(score, q, {r,g,b}); this.updateHistory();
+        this.displayResult(score, q, {r,g,b}); this.updateHistoryLog();
     },
-    showResult: function(score, q, input) {
-        app.showScreen('result-origin'); 
+    displayResult: function(score, q, input) {
+        AppController.showScreen('result-origin'); 
         document.getElementById('origin-score').innerText = score + "%";
         document.getElementById('origin-ans-color').style.backgroundColor = q.hex; document.getElementById('origin-ans-text').innerText = `${q.r},${q.g},${q.b}`;
-        document.getElementById('origin-your-color').style.backgroundColor = utils.rgbToHex(input.r,input.g,input.b); document.getElementById('origin-your-text').innerText = `${input.r},${input.g},${input.b}`;
+        document.getElementById('origin-your-color').style.backgroundColor = Utils.rgbToHex(input.r,input.g,input.b); document.getElementById('origin-your-text').innerText = `${input.r},${input.g},${input.b}`;
     },
-    updateHistory: function() {
+    updateHistoryLog: function() {
         const val = Number(localStorage.getItem("index")) || 1; const pb = Number(localStorage.getItem("my_1record")) || 0; const bestAo5 = Number(localStorage.getItem("my_ao5record")) || 0;
         let html = "";
         for(let i = val - 1; i > 0; i--) {
@@ -291,10 +291,10 @@ const originGame = {
         document.getElementById('origin-pb').innerText = (pb ? pb.toFixed(2) : "--") + "%"; 
         document.getElementById('origin-ao5').innerText = (bestAo5 ? bestAo5.toFixed(2) : "--") + "%";
     },
-    resetData: function() { 
-        app.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
+    clearSaveData: function() { 
+        AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
     },
-    shareResult: function() {
+    generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
         const score = document.getElementById('origin-score').innerText;
@@ -308,7 +308,7 @@ const originGame = {
         const r = document.getElementById('origin-R').value;
         const g = document.getElementById('origin-G').value;
         const b = document.getElementById('origin-B').value;
-        const inputHex = utils.rgbToHex(Number(r), Number(g), Number(b));
+        const inputHex = Utils.rgbToHex(Number(r), Number(g), Number(b));
 
         canvas.width = 600;
         canvas.height = 400; 
@@ -334,7 +334,7 @@ const originGame = {
             ctx.font = 'bold 14px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 55);
             ctx.save(); ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
             ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
-            const rgbStr = utils.hexToRgbString(color);
+            const rgbStr = Utils.hexToRgbString(color);
             ctx.font = '14px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(rgbStr, x, y + 60);
         };
         drawColor(200, 310, targetHex, "TARGET");
@@ -354,55 +354,55 @@ const originGame = {
 };
 
 // Rush Mode
-const rushGame = {
+const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,
-    init: function() {
+    initialize: function() {
         this.els = { R: document.getElementById('rush-R'), G: document.getElementById('rush-G'), B: document.getElementById('rush-B'), valR: document.getElementById('rush-val-R'), valG: document.getElementById('rush-val-G'), valB: document.getElementById('rush-val-B'), qColor: document.getElementById('rush-question-color'), myColor: document.getElementById('rush-input-color'), timer: document.getElementById('rush-timer'), combo: document.getElementById('rush-combo-display'), currentScore: document.getElementById('rush-current-score') };
         const update = () => this.updateMyColor(); 
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
-        document.getElementById('rush-guess-btn').onclick = () => this.guess();
-        app.showScreen('rush');
-        this.resetGame();
+        document.getElementById('rush-guess-btn').onclick = () => this.submitGuess();
+        AppController.showScreen('rush');
+        this.startNewGame();
     },
-    resetGame: function() {
+    startNewGame: function() {
         this.isPlaying = true; this.timeLeft = 60; this.score = 0; this.combo = 0; this.count = 0;
-        this.nextColor(); this.updateUI();
+        this.setNextColor(); this.updateUI();
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.timerInterval = setInterval(() => {
             if (!this.isPlaying) return;
             this.timeLeft -= 0.01;
-            if (this.timeLeft <= 0) { this.timeLeft = 0; this.gameOver(); }
+            if (this.timeLeft <= 0) { this.timeLeft = 0; this.endGame(); }
             this.updateUI();
         }, 10);
     },
-    nextColor: function() {
-        this.questionColor = utils.randColor(); this.els.qColor.style.backgroundColor = this.questionColor.hex;
+    setNextColor: function() {
+        this.questionColor = Utils.generateRandomColor(); this.els.qColor.style.backgroundColor = this.questionColor.hex;
         this.els.R.value = Math.floor(Math.random() * 256); this.els.G.value = Math.floor(Math.random() * 256); this.els.B.value = Math.floor(Math.random() * 256);
         this.updateMyColor();
     },
     updateMyColor: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         this.els.valR.innerText = r; this.els.valG.innerText = g; this.els.valB.innerText = b;
-        this.els.myColor.style.backgroundColor = utils.rgbToHex(r, g, b);
+        this.els.myColor.style.backgroundColor = Utils.rgbToHex(r, g, b);
     },
     updateUI: function() {
         this.els.timer.innerText = this.timeLeft.toFixed(2); this.els.currentScore.innerText = Math.floor(this.score);
         if (this.combo > 1) { this.els.combo.classList.remove('hidden'); this.els.combo.innerText = `${this.combo} COMBO`; } else { this.els.combo.classList.add('hidden'); }
     },
-    guess: function() {
+    submitGuess: function() {
         if (!this.isPlaying) return;
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
-        const acc = utils.calcScoreValue(this.questionColor, {r, g, b}); 
+        const acc = Utils.calculateScoreValue(this.questionColor, {r, g, b}); 
         let timeDelta = 0; let isBad = false;
         if (acc < 90) { timeDelta = -5; this.combo = 0; isBad = true; } else {
             if (acc >= 99) timeDelta = 5; else if (acc >= 98) timeDelta = 4; else if (acc >= 95) timeDelta = 2; else timeDelta = 0; 
             this.combo++; this.score += (acc * 10) + (this.combo * 50); this.count++;
         }
         this.timeLeft += timeDelta; if (this.timeLeft < 0) this.timeLeft = 0; 
-        this.showEffect(timeDelta, isBad, acc.toFixed(2)+"%");
-        if (this.timeLeft > 0) { this.nextColor(); } else { this.gameOver(); }
+        this.triggerVisualEffect(timeDelta, isBad, acc.toFixed(2)+"%");
+        if (this.timeLeft > 0) { this.setNextColor(); } else { this.endGame(); }
     },
-    showEffect: function(delta, isBad, accStr) {
+    triggerVisualEffect: function(delta, isBad, accStr) {
         const container = document.getElementById('rush-effect-container');
         const el = document.createElement('div'); el.className = 'time-popup';
         let timeText = isBad ? "-5s" : (delta > 0 ? `+${delta}s` : "SAFE");
@@ -412,9 +412,9 @@ const rushGame = {
         el.style.transform = `translate(${rndX}px, ${rndY}px)`;
         container.appendChild(el); setTimeout(() => el.remove(), 800);
     },
-    gameOver: function() {
+    endGame: function() {
         this.isPlaying = false; clearInterval(this.timerInterval);
-        app.showScreen('result-rush');
+        AppController.showScreen('result-rush');
         const finalScore = Math.floor(this.score);
         document.getElementById('rush-final-score').innerText = finalScore;
         document.getElementById('rush-max-combo').innerText = this.combo; document.getElementById('rush-count').innerText = this.count;
@@ -423,43 +423,43 @@ const rushGame = {
         if (finalScore > currentBest) { localStorage.setItem('rush_best', finalScore); newRecordEl.classList.remove('hidden'); } else { newRecordEl.classList.add('hidden'); }
         document.getElementById('rush-best').innerText = localStorage.getItem('rush_best') || 0;
     },
-    resetData: function() { app.confirm("Reset Rush Records?", (y) => { if(y) { localStorage.removeItem('rush_best'); location.reload(); } }); }
+    clearSaveData: function() { AppController.confirm("Reset Rush Records?", (y) => { if(y) { localStorage.removeItem('rush_best'); location.reload(); } }); }
 };
 
 // Survival Mode (Updated Buttons & Icons)
-const survivalGame = {
+const SurvivalGame = {
     aimScores: ["50.00", "60.00", "70.00", "75.00", "80.00", "85.00", "88.00", "90.00", "91.00", "92.00", "93.00", "94.00", "95.00", "95.50", "96.00", "96.50", "97.00", "97.50", "98.00", "98.50", "99.00", "99.30", "99.60", "99.90", "100.00"],
     currentStage: 1, questionColor: {},
-    init: function() {
+    initialize: function() {
         this.els = { R: document.getElementById('survival-R'), G: document.getElementById('survival-G'), B: document.getElementById('survival-B'), valR: document.getElementById('survival-val-R'), valG: document.getElementById('survival-val-G'), valB: document.getElementById('survival-val-B'), sample: document.getElementById('survival-sample'), nextBtn: document.getElementById('survival-next-btn') };
         const update = () => { this.els.valR.innerText = this.els.R.value; this.els.valG.innerText = this.els.G.value; this.els.valB.innerText = this.els.B.value; };
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
-        document.getElementById('survival-guess-btn').onclick = () => this.guess();
+        document.getElementById('survival-guess-btn').onclick = () => this.submitGuess();
         const savedStage = localStorage.getItem("4stage_number"); this.currentStage = savedStage ? Number(savedStage) : 1;
         document.getElementById('survival-new-record').classList.add('hidden');
-        this.setupStage(); this.updateHistory();
+        this.prepareStage(); this.updateHistoryLog();
     },
-    setupStage: function() {
+    prepareStage: function() {
         const stageStr = this.currentStage.toString().padStart(2, '0'); document.getElementById('survival-stage-num').innerText = stageStr; 
         document.getElementById('survival-aim-score').innerText = this.aimScores[this.currentStage - 1] + "%";
         const savedHex = localStorage.getItem("4RGB_Temporary_Hex");
         if(savedHex) { const r = Number(localStorage.getItem("4RGB_Temporary_R")); const g = Number(localStorage.getItem("4RGB_Temporary_G")); const b = Number(localStorage.getItem("4RGB_Temporary_B")); this.questionColor = { r,g,b, hex: savedHex }; }
-        else { this.questionColor = utils.randColor(); localStorage.setItem("4RGB_Temporary_Hex", this.questionColor.hex); localStorage.setItem("4RGB_Temporary_R", this.questionColor.r); localStorage.setItem("4RGB_Temporary_G", this.questionColor.g); localStorage.setItem("4RGB_Temporary_B", this.questionColor.b); }
+        else { this.questionColor = Utils.generateRandomColor(); localStorage.setItem("4RGB_Temporary_Hex", this.questionColor.hex); localStorage.setItem("4RGB_Temporary_R", this.questionColor.r); localStorage.setItem("4RGB_Temporary_G", this.questionColor.g); localStorage.setItem("4RGB_Temporary_B", this.questionColor.b); }
         this.els.sample.style.backgroundColor = this.questionColor.hex; this.els.R.value = 128; this.els.G.value = 128; this.els.B.value = 128; this.els.R.oninput();
         document.getElementById('survival-new-record').classList.add('hidden');
     },
-    guess: function() {
+    submitGuess: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value); const q = this.questionColor;
-        const score = utils.calcScore(q, {r, g, b});
+        const score = Utils.calculateScore(q, {r, g, b});
         const target = this.aimScores[this.currentStage - 1]; 
         const isClear = Number(score) >= Number(target);
         
-        app.showScreen('result-survival');
+        AppController.showScreen('result-survival');
         const scoreText = document.getElementById('survival-score-text'); scoreText.innerText = isClear ? "Clear!" : "FAILED"; scoreText.style.color = isClear ? "var(--accent-green)" : "var(--accent-red)";
         document.getElementById('survival-result-score').innerText = score + "%"; document.getElementById('survival-result-goal').innerText = target + "%";
         document.getElementById('survival-ans-color').style.backgroundColor = q.hex; document.getElementById('survival-ans-text').innerText = `${q.r},${q.g},${q.b}`;
-        document.getElementById('survival-your-color').style.backgroundColor = utils.rgbToHex(r,g,b); document.getElementById('survival-your-text').innerText = `${r},${g},${b}`;
-        localStorage.setItem("4answer_rgb16_"+this.currentStage, q.hex); localStorage.setItem("4input_rgb16_"+this.currentStage, utils.rgbToHex(r,g,b));
+        document.getElementById('survival-your-color').style.backgroundColor = Utils.rgbToHex(r,g,b); document.getElementById('survival-your-text').innerText = `${r},${g},${b}`;
+        localStorage.setItem("4answer_rgb16_"+this.currentStage, q.hex); localStorage.setItem("4input_rgb16_"+this.currentStage, Utils.rgbToHex(r,g,b));
         localStorage.setItem("4answer_rgb_"+this.currentStage, `(${q.r},${q.g},${q.b})`); localStorage.setItem("4input_rgb_"+this.currentStage, `(${r},${g},${b})`);
         
         const maxStage = Number(localStorage.getItem("4stage_record")) || 0;
@@ -468,22 +468,22 @@ const survivalGame = {
 
         if(isClear) {
             this.els.nextBtn.innerHTML = '<span class="btn-icon">▶</span> NEXT STAGE';
-            this.els.nextBtn.onclick = () => this.next();
+            this.els.nextBtn.onclick = () => this.advanceStage();
             localStorage.setItem("4stage_number" + this.currentStage, score);
             if(this.currentStage > maxStage) { localStorage.setItem("4stage_record", this.currentStage); }
             this.currentStage++; localStorage.setItem("4stage_number", this.currentStage); localStorage.removeItem("4RGB_Temporary_Hex");
         } else {
             this.els.nextBtn.innerHTML = '<span class="btn-icon">↻</span> RESTART';
-            this.els.nextBtn.onclick = () => this.quickRestart();
+            this.els.nextBtn.onclick = () => this.restartGame();
         }
-        this.updateHistory();
+        this.updateHistoryLog();
     },
-    next: function() { if(this.currentStage > 25) { app.alert("ALL CLEAR! CONGRATULATIONS!", ()=>this.resetData()); return; } this.setupStage(); app.showScreen('survival'); },
-    quickRestart: function() {
+    advanceStage: function() { if(this.currentStage > 25) { AppController.alert("ALL CLEAR! CONGRATULATIONS!", ()=>this.clearSaveData()); return; } this.prepareStage(); AppController.showScreen('survival'); },
+    restartGame: function() {
         for(let i=1; i<=26; i++) { localStorage.removeItem("4stage_number"+i); localStorage.removeItem("4answer_rgb16_"+i); localStorage.removeItem("4input_rgb16_"+i); localStorage.removeItem("4answer_rgb_"+i); localStorage.removeItem("4input_rgb_"+i); }
-        localStorage.setItem("4stage_number", 1); localStorage.removeItem("4RGB_Temporary_Hex"); this.currentStage = 1; this.setupStage(); this.updateHistory(); app.showScreen('survival');
+        localStorage.setItem("4stage_number", 1); localStorage.removeItem("4RGB_Temporary_Hex"); this.currentStage = 1; this.prepareStage(); this.updateHistoryLog(); AppController.showScreen('survival');
     },
-    updateHistory: function() {
+    updateHistoryLog: function() {
         const pb = localStorage.getItem("4stage_record"); document.getElementById('survival-pb').innerText = pb ? `${pb}` : "1";
         let html = "";
         for(let i = this.currentStage - 1; i >= 1; i--) {
@@ -497,47 +497,47 @@ const survivalGame = {
         }
         document.getElementById('survival-history').innerHTML = html;
     },
-    resetData: function() { 
-        app.confirm("Survivalモードの記録をリセットしますか？", (y)=>{ if(y) { this.quickRestart(); localStorage.removeItem("4stage_record"); } }) 
+    clearSaveData: function() { 
+        AppController.confirm("Survivalモードの記録をリセットしますか？", (y)=>{ if(y) { this.restartGame(); localStorage.removeItem("4stage_record"); } }) 
     }
 };
 
 // Another World (Color Storage) - Updated Share (Centered)
-const anotherGame = {
+const AnotherGame = {
     init: function() {
         this.els = { R: document.getElementById('another-R'), G: document.getElementById('another-G'), B: document.getElementById('another-B'), valR: document.getElementById('another-val-R'), valG: document.getElementById('another-val-G'), valB: document.getElementById('another-val-B'), myColor: document.getElementById('another-input-color') };
         const update = () => this.updateMyColor(); 
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
         this.els.R.value = 128; this.els.G.value = 128; this.els.B.value = 128; 
-        this.updateMyColor(); this.updateHistory();
+        this.updateMyColor(); this.updateHistoryLog();
     },
     updateMyColor: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         this.els.valR.innerText = r; this.els.valG.innerText = g; this.els.valB.innerText = b;
-        this.els.myColor.style.backgroundColor = utils.rgbToHex(r, g, b);
+        this.els.myColor.style.backgroundColor = Utils.rgbToHex(r, g, b);
     },
-    saveColor: function() {
+    saveColorToStorage: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
-        const hex = utils.rgbToHex(r, g, b);
+        const hex = Utils.rgbToHex(r, g, b);
         let val = Number(localStorage.getItem("3index")) || 1;
         localStorage.setItem("3input_rgb16"+val, hex);
         localStorage.setItem("3input_rgb"+val, `(${r},${g},${b})`);
         localStorage.setItem("3date"+val, new Date().toLocaleString());
         localStorage.setItem("3index", val + 1);
-        this.updateHistory();
+        this.updateHistoryLog();
     },
-    updateHistory: function() {
+    updateHistoryLog: function() {
         const list = document.getElementById('another-history'); 
         const val = Number(localStorage.getItem("3index")) || 1;
         let html = "";
         for(let i = val - 1; i > 0; i--) {
             const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; const txt = localStorage.getItem("3input_rgb"+i) || ''; const date = localStorage.getItem("3date"+i) || '';
-            html += `<div class="history-item" style="grid-template-columns: 35px 1fr 30px;"><span class="history-index">#${i}</span><div class="history-colors"><div class="color-row"><span class="chip-xs" style="background:${hex}; width:20px; height:20px;"></span><span style="font-size:1rem; font-weight:bold; color:#fff;">${txt}</span></div><div style="font-size:0.7rem; color:#666; margin-top:2px;">${date}</div></div><button class="btn-delete" onclick="anotherGame.deleteSingle(${i})">✕</button></div>`;
+            html += `<div class="history-item" style="grid-template-columns: 35px 1fr 30px;"><span class="history-index">#${i}</span><div class="history-colors"><div class="color-row"><span class="chip-xs" style="background:${hex}; width:20px; height:20px;"></span><span style="font-size:1rem; font-weight:bold; color:#fff;">${txt}</span></div><div style="font-size:0.7rem; color:#666; margin-top:2px;">${date}</div></div><button class="btn-delete" onclick="AnotherGame.deleteSingleItem(${i})">✕</button></div>`;
         }
         list.innerHTML = html;
     },
-    deleteSingle: function(targetIdx) {
-        app.confirm("Delete this color?", (y) => {
+    deleteSingleItem: function(targetIdx) {
+        AppController.confirm("Delete this color?", (y) => {
             if(y) {
                 const max = Number(localStorage.getItem("3index")) || 1;
                 let items = [];
@@ -558,19 +558,17 @@ const anotherGame = {
                     localStorage.setItem("3date"+newIdx, item.date);
                 });
                 localStorage.setItem("3index", items.length + 1);
-                this.updateHistory();
+                this.updateHistoryLog();
             }
         });
     },
-    
-    // ★修正: 中央寄せ計算 (80px start, 110px spacing)
-    shareStorage: function() {
+    generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
         const max = Number(localStorage.getItem("3index")) || 1;
         const count = max - 1;
 
-        if (count === 0) return app.alert("No colors saved!");
+        if (count === 0) return AppController.alert("No colors saved!");
 
         const cols = 5;
         const rows = Math.ceil(count / cols);
@@ -580,6 +578,7 @@ const anotherGame = {
         const width = 600;
         const height = headerHeight + (rows * itemSize) + footerHeight;
 
+        canvas.width = width;
         canvas.height = height;
         
         const grad = ctx.createLinearGradient(0, 0, width, height);
@@ -597,7 +596,6 @@ const anotherGame = {
             const txt = localStorage.getItem("3input_rgb"+i); 
             
             const idx = i - 1;
-            // ★修正: 中央寄せの計算 (80px start)
             const x = 80 + (idx % cols) * 110; 
             const y = headerHeight + 50 + Math.floor(idx / cols) * 100;
 
@@ -620,26 +618,36 @@ const anotherGame = {
                 const link = document.createElement('a'); link.download = `retina_storage.png`; link.href = canvas.toDataURL(); link.click();
             }
         });
+    },
+    clearSaveData: function() { 
+        AppController.confirm("保存した色をすべて消去しますか？", (y)=>{ 
+            if(y){ 
+                const val = Number(localStorage.getItem("3index")) || 1;
+                for(let i=1; i<val; i++) { localStorage.removeItem("3input_rgb16"+i); localStorage.removeItem("3input_rgb"+i); localStorage.removeItem("3date"+i); }
+                localStorage.removeItem("3index");
+                this.updateHistoryLog();
+            } 
+        });
     }
 };
 
-// Daily Game Mode (Updated Share: Landscape, New Footer)
-const dailyGame = {
+// Daily Game Mode
+const DailyGame = {
     targetColor: {}, dateStr: "", timerInterval: null, els:{},
-    init: function() {
+    initialize: function() {
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.els = { R: document.getElementById('daily-R'), G: document.getElementById('daily-G'), B: document.getElementById('daily-B'), valR: document.getElementById('daily-val-R'), valG: document.getElementById('daily-val-G'), valB: document.getElementById('daily-val-B'), qColor: document.getElementById('daily-question-color') };
         
         const guessBtn = document.getElementById('daily-guess-btn');
-        if(guessBtn) guessBtn.onclick = () => this.guess();
+        if(guessBtn) guessBtn.onclick = () => this.submitGuess();
 
-        this.dateStr = utils.getTodayString();
-        this.targetColor = utils.generateDailyColor(this.dateStr);
+        this.dateStr = Utils.getTodayString();
+        this.targetColor = Utils.generateDailyColor(this.dateStr);
         
         const playedScore = localStorage.getItem("daily_score_" + this.dateStr);
         if (playedScore) {
             const savedInputHex = localStorage.getItem("daily_input_hex_" + this.dateStr) || "#000000";
-            this.showResult(playedScore, this.targetColor, savedInputHex);
+            this.displayResult(playedScore, this.targetColor, savedInputHex);
             return;
         }
 
@@ -648,27 +656,27 @@ const dailyGame = {
         
         this.els.R.value = 128; this.els.G.value = 128; this.els.B.value = 128; 
         update();
-        document.getElementById('daily-date-display').innerText = utils.getFormattedDate();
+        document.getElementById('daily-date-display').innerText = Utils.getFormattedDate();
         this.els.qColor.style.backgroundColor = this.targetColor.hex;
     },
 
-    guess: function() {
+    submitGuess: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
-        const score = utils.calcScore(this.targetColor, {r, g, b});
+        const score = Utils.calculateScore(this.targetColor, {r, g, b});
         localStorage.setItem("daily_score_" + this.dateStr, score);
-        localStorage.setItem("daily_input_hex_" + this.dateStr, utils.rgbToHex(r, g, b));
-        this.showResult(score, this.targetColor, utils.rgbToHex(r, g, b));
+        localStorage.setItem("daily_input_hex_" + this.dateStr, Utils.rgbToHex(r, g, b));
+        this.displayResult(score, this.targetColor, Utils.rgbToHex(r, g, b));
     },
 
-    showResult: function(score, target, inputHex) {
+    displayResult: function(score, target, inputHex) {
         if(this.timerInterval) clearInterval(this.timerInterval);
-        app.showScreen('result-daily');
-        document.getElementById('daily-res-date').innerText = utils.getFormattedDate();
+        AppController.showScreen('result-daily');
+        document.getElementById('daily-res-date').innerText = Utils.getFormattedDate();
         document.getElementById('daily-score').innerText = score + "%";
         document.getElementById('daily-ans-color').style.backgroundColor = target.hex;
         document.getElementById('daily-ans-text').innerText = `${target.r}, ${target.g}, ${target.b}`; 
         document.getElementById('daily-your-color').style.backgroundColor = inputHex;
-        document.getElementById('daily-your-text').innerText = utils.hexToRgbString(inputHex);
+        document.getElementById('daily-your-text').innerText = Utils.hexToRgbString(inputHex);
         this.startTimer();
     },
 
@@ -688,10 +696,10 @@ const dailyGame = {
         this.timerInterval = setInterval(updateTimer, 1000);
     },
 
-    shareResult: function() {
+    generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
-        const dateText = utils.getFormattedDate();
+        const dateText = Utils.getFormattedDate();
         const score = document.getElementById('daily-score').innerText;
         const targetHex = this.targetColor.hex;
         const savedInputHex = localStorage.getItem("daily_input_hex_" + this.dateStr) || "#000000";
@@ -735,9 +743,8 @@ const dailyGame = {
 };
 
 
-
-// ▼ VERSUS MODE (Unified 2-4 Players) - FIXED Result Persistence & Auto Join
-const versusGame = {
+// ▼ VERSUS MODE (Unified 2-4 Players)
+const VersusGame = {
     roomId: null, role: null, roomRef: null,
     myName: "Player", currentRound: 0, inviteRoomId: null,
     resultData: null, 
@@ -745,7 +752,7 @@ const versusGame = {
 
     createRoom: function() {
         const name = document.getElementById('versus-name-input').value.trim();
-        if(!name) return app.alert("Please enter your name.");
+        if(!name) return AppController.alert("Please enter your name.");
         let maxWins = parseInt(document.getElementById('versus-goal-input').value);
         if (isNaN(maxWins) || maxWins < 0) maxWins = 5;
 
@@ -758,7 +765,7 @@ const versusGame = {
         this.roomRef = db.ref('rooms_versus/' + this.roomId);
         
         this.roomRef.set({
-            state: 'waiting', question: utils.randColor(), round: 1, maxWins: maxWins, 
+            state: 'waiting', question: Utils.generateRandomColor(), round: 1, maxWins: maxWins, 
             players: {
                 p1: { name: this.myName, score: 0, status: 'waiting' },
                 p2: { name: '', score: 0, status: 'empty' },
@@ -770,14 +777,14 @@ const versusGame = {
         this.roomRef.onDisconnect().remove();
         this.listenToRoom();
         document.getElementById('versus-room-id-display').innerText = this.roomId;
-        app.showScreen('versus-lobby');
+        AppController.showScreen('versus-lobby');
     },
 
-    showJoinScreen: function() {
+    displayJoinScreen: function() {
         const name = document.getElementById('versus-name-input').value.trim();
-        if(!name) return app.alert("Please enter your name.");
+        if(!name) return AppController.alert("Please enter your name.");
         localStorage.setItem("friend_name", name); this.myName = name;
-        app.showScreen('versus-join');
+        AppController.showScreen('versus-join');
         
         if (this.inviteRoomId) {
             document.getElementById('versus-room-input').value = this.inviteRoomId;
@@ -788,7 +795,7 @@ const versusGame = {
     joinRoom: function() {
         const inputEl = document.getElementById('versus-room-input');
         const inputId = inputEl.value;
-        if(!/^\d{4}$/.test(inputId)) return app.alert("Enter 4-digit ID");
+        if(!/^\d{4}$/.test(inputId)) return AppController.alert("Enter 4-digit ID");
         
         const joinBtn = document.querySelector('#screen-versus-join .main-action-btn');
         joinBtn.disabled = true;
@@ -799,7 +806,7 @@ const versusGame = {
         this.resultData = null; 
         this.cachedPlayers = {}; 
 
-        app.showScreen('versus-lobby');
+        AppController.showScreen('versus-lobby');
         document.getElementById('versus-room-id-display').innerText = this.roomId;
         document.getElementById('versus-status-text').innerText = "Connecting...";
         
@@ -810,7 +817,7 @@ const versusGame = {
                 else if (data.players.p3.status === 'empty') this.role = 'p3';
                 else if (data.players.p4.status === 'empty') this.role = 'p4';
                 else {
-                    app.alert("Room is full (4/4)", () => { app.showScreen('versus-join'); });
+                    AppController.alert("Room is full (4/4)", () => { AppController.showScreen('versus-join'); });
                     joinBtn.disabled = false;
                     return;
                 }
@@ -819,11 +826,11 @@ const versusGame = {
                 this.listenToRoom();
                 joinBtn.disabled = false;
             } else { 
-                app.alert("Room not found", () => { app.showScreen('versus-join'); });
+                AppController.alert("Room not found", () => { AppController.showScreen('versus-join'); });
                 joinBtn.disabled = false;
             }
         }).catch(() => {
-            app.alert("Connection Error", () => { app.showScreen('versus-join'); });
+            AppController.alert("Connection Error", () => { AppController.showScreen('versus-join'); });
             joinBtn.disabled = false;
         });
     },
@@ -831,9 +838,9 @@ const versusGame = {
     listenToRoom: function() {
         this.roomRef.on('value', (snapshot) => {
             const data = snapshot.val();
-            if(!data) { app.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
+            if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
-            // ★ キャッシュ更新: 名前があればキャッシュする
+            // ★ キャッシュ更新
             if (data.players) {
                 Object.keys(data.players).forEach(key => {
                     const p = data.players[key];
@@ -845,14 +852,9 @@ const versusGame = {
 
             // ★ 決着時のデータ固定
             if (data.state === 'finished') {
-                // 自分のonDisconnectをキャンセルしてデータ消失を防ぐ
-                if (this.role) {
-                    this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
-                }
-
+                if (this.role) { this.roomRef.child(`players/${this.role}`).onDisconnect().cancel(); }
                 if (!this.resultData) {
                     let finalData = JSON.parse(JSON.stringify(data));
-                    // 欠損データをキャッシュから復元
                     Object.keys(this.cachedPlayers).forEach(key => {
                         if (!finalData.players[key] || finalData.players[key].status === 'empty') {
                             finalData.players[key] = this.cachedPlayers[key];
@@ -860,8 +862,7 @@ const versusGame = {
                     });
                     this.resultData = finalData;
                 }
-                // 固定データで表示
-                this.showResult(this.resultData);
+                this.showResult(this.resultData, data); // Pass fixed AND live data
                 return;
             } else {
                 this.resultData = null;
@@ -876,18 +877,16 @@ const versusGame = {
                 }
             });
 
-            // ゲームセットチェック
             const goal = data.maxWins || 5;
             const isGameSet = Object.values(data.players).some(p => p.score >= goal && p.status !== 'empty');
 
-            // 進行中の人数不足チェック
             if (!isGameSet && data.state !== 'waiting' && activeCount < 2) {
-                app.alert("Everyone left the game...", () => { this.exitRoom(); });
+                AppController.alert("Everyone left the game...", () => { this.exitRoom(); });
                 return;
             }
-
+            
             if (data.state === 'waiting' && document.getElementById('screen-versus-result').classList.contains('active')) {
-                 app.showScreen('versus-lobby');
+                 AppController.showScreen('versus-lobby');
             }
 
             const goalText = (data.maxWins > 0) ? `First to ${data.maxWins} Wins` : "Endless Mode";
@@ -950,7 +949,7 @@ const versusGame = {
 
     startRound: function(data) {
         if (this.currentRound === data.round && document.getElementById('screen-versus-battle').classList.contains('active')) return;
-        app.showScreen('versus-battle');
+        AppController.showScreen('versus-battle');
         document.getElementById('versus-wait-msg').classList.add('hidden');
         document.getElementById('versus-guess-btn').classList.remove('hidden');
         const update = () => this.updateColor();
@@ -968,7 +967,7 @@ const versusGame = {
     },
     submitGuess: function() {
         const r = parseInt(document.getElementById('versus-R').value); const g = parseInt(document.getElementById('versus-G').value); const b = parseInt(document.getElementById('versus-B').value);
-        this.roomRef.child(`players/${this.role}`).update({ color: {r, g, b, hex: utils.rgbToHex(r,g,b)}, status: 'guessed' });
+        this.roomRef.child(`players/${this.role}`).update({ color: {r, g, b, hex: Utils.rgbToHex(r,g,b)}, status: 'guessed' });
         document.getElementById('versus-guess-btn').classList.add('hidden');
         document.getElementById('versus-wait-msg').classList.remove('hidden');
     },
@@ -977,7 +976,7 @@ const versusGame = {
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
             if (p.status !== 'empty') {
-                const roundScore = utils.calcScoreValue(q, p.color);
+                const roundScore = Utils.calculateScoreValue(q, p.color);
                 scores.push({ key: key, score: roundScore });
                 updates[`players/${key}/lastScore`] = roundScore.toFixed(2);
             }
@@ -990,7 +989,6 @@ const versusGame = {
         this.roomRef.update(updates);
     },
     
-    // ★ 招待機能: 共有メニューを開く
     shareInviteLink: function() {
         if (!this.roomId) return;
         const url = new URL(window.location.href);
@@ -1006,7 +1004,7 @@ const versusGame = {
             navigator.share(shareData).catch(console.error);
         } else {
             navigator.clipboard.writeText(url.toString()).then(() => {
-                app.alert("Invite link copied!");
+                AppController.alert("Invite link copied!");
             });
         }
     },
@@ -1024,7 +1022,7 @@ const versusGame = {
         this.roomRef.once('value').then(snap => { 
             const d = snap.val(); 
             let updates = {}; 
-            updates['question'] = utils.randColor(); 
+            updates['question'] = Utils.generateRandomColor(); 
             updates['round'] = nextRoundNum; 
             updates['state'] = 'playing'; 
             Object.keys(d.players).forEach(key => { 
@@ -1034,17 +1032,19 @@ const versusGame = {
         }); 
     },
 
-    confirmExit: function() { app.confirm("Exit Multiplayer?", (y) => { if(y) this.exitRoom(); }); },
-    exitRoom: function(isPassive) { if(this.roomRef && !isPassive) { this.roomRef.off(); if (this.role) { this.roomRef.child(`players/${this.role}`).update({ name: '', score: 0, status: 'empty' }); } } this.roomId = null; app.showScreen('menu'); },
+    confirmExit: function() { AppController.confirm("Exit Multiplayer?", (y) => { if(y) this.exitRoom(); }); },
+    exitRoom: function(isPassive) { if(this.roomRef && !isPassive) { this.roomRef.off(); if (this.role) { this.roomRef.child(`players/${this.role}`).update({ name: '', score: 0, status: 'empty' }); } } this.roomId = null; AppController.showScreen('menu'); },
 
-    showResult: function(data) {
-        if(!document.getElementById('screen-versus-result').classList.contains('active')) { app.showScreen('versus-result'); }
-        const q = data.question; const myKey = this.role;
+    showResult: function(data, liveData) { 
+        if(!document.getElementById('screen-versus-result').classList.contains('active')) { AppController.showScreen('versus-result'); }
+        
+        const logicData = liveData || data; // logicData is used for state check, data is used for rendering
+        const q = data.question; 
+        const myKey = this.role;
         
         let activePlayers = [];
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
-            // 名前があれば、ステータスに関わらず表示（退出者も表示するため）
             if (p.name) {
                 activePlayers.push({ 
                     key: key, 
@@ -1099,7 +1099,6 @@ const versusGame = {
         });
         playersCompContainer.innerHTML = compareHtml;
         
-        // ★修正: 複数勝者判定
         let champions = [];
         if (goal > 0) {
             const goalReachers = activePlayers.filter(p => p.wins >= goal);
@@ -1114,13 +1113,11 @@ const versusGame = {
         const contMsg = document.getElementById('versus-continue-status');
 
         if (champions.length > 0) {
-            // Game Set
             winDeclare.classList.remove('hidden'); 
             const names = champions.map(p => p.name).join(" & ");
             winDeclare.innerText = `🏆 ${names} WIN THE GAME! 🏆`; 
             title.innerText = "GAME SET"; title.style.color = "#fff";
             
-            // 再戦廃止 -> 退出ボタンのみ
             btn.innerHTML = 'RETURN TO MENU';
             btn.disabled = false;
             btn.style.background = "var(--primary-multi)";
@@ -1128,32 +1125,30 @@ const versusGame = {
             
             contMsg.innerText = "Thanks for playing!";
         } else {
-            // Next Round
             winDeclare.classList.add('hidden'); 
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
             btn.onclick = () => this.voteContinue();
 
-            if (data.players[this.role].status === 'ready') { 
-                btn.disabled = true; btn.innerText = "WAITING..."; btn.style.background = "#555"; btn.style.opacity = "0.7"; 
+            // Check MY live status from logicData (current state)
+            if (logicData.players[this.role].status === 'ready') { 
+                btn.disabled = true; 
+                btn.innerText = "WAITING..."; 
+                btn.style.background = "#555"; 
+                btn.style.opacity = "0.7"; 
             } else { 
-                btn.disabled = false; btn.innerText = "CONTINUE"; btn.style.background = "var(--primary-multi)"; btn.style.opacity = "1"; 
+                btn.disabled = false; 
+                btn.innerText = "CONTINUE"; 
+                btn.style.background = "var(--primary-multi)"; 
+                btn.style.opacity = "1"; 
             }
             
             let readyCount = 0; 
-            let totalActive = activePlayers.length;
-            
-            // 最新の状態（data）を見てReady数をカウント
-            // ただしactivePlayersには退出者も含まれる可能性があるので、data上でemptyでない人のみをカウント対象にする必要があるか？
-            // いえ、playing中はactivePlayersは全員emptyでないはず。
-            // もしリザルト中に誰かが抜けた場合、activePlayersには残るが、data上はemptyになる。
-            // その場合、抜けた人は「Ready」を押せないので、永遠に進まなくなる恐れがある。
-            // したがって、Readyカウントは「現在部屋にいる人（emptyでない人）」を分母にする必要がある。
-
+            // Count players who are currently in the room (not empty)
             let currentRoomMembers = 0;
-             Object.keys(data.players).forEach(key => {
-                if (data.players[key].status !== 'empty') {
+             Object.keys(logicData.players).forEach(key => {
+                if (logicData.players[key].status !== 'empty') {
                     currentRoomMembers++;
-                    if (data.players[key].status === 'ready') readyCount++;
+                    if (logicData.players[key].status === 'ready') readyCount++;
                 }
             });
             
@@ -1161,7 +1156,7 @@ const versusGame = {
             else contMsg.innerText = `Waiting for players (${readyCount}/${currentRoomMembers} ready)...`;
             
             if (this.role === 'p1' && readyCount === currentRoomMembers && currentRoomMembers > 0) { 
-                this.nextRound(data.round + 1); 
+                this.nextRound(logicData.round + 1); 
             }
         }
     }
@@ -1169,37 +1164,36 @@ const versusGame = {
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
 
-// ▼ Initialize App (Updated for URL Join)
+// ▼ Initialize App
 window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     
-    menuLogic.init();
+    MenuLogic.init();
 
     if (roomParam) {
         const savedName = localStorage.getItem("friend_name");
         if (savedName) {
-            versusGame.inviteRoomId = roomParam;
-            versusGame.myName = savedName;
-            app.showScreen('versus-join');
+            VersusGame.inviteRoomId = roomParam;
+            VersusGame.myName = savedName;
+            AppController.showScreen('versus-join');
             document.getElementById('versus-room-input').value = roomParam;
-            // Auto Join
-            versusGame.joinRoom();
+            VersusGame.joinRoom();
         } else {
-            versusGame.inviteRoomId = roomParam;
-            app.showScreen('versus-menu');
+            VersusGame.inviteRoomId = roomParam;
+            AppController.showScreen('versus-menu');
         }
     } else {
         const savedScreen = localStorage.getItem('current_screen');
         if (savedScreen && savedScreen !== 'menu') {
-            if (savedScreen === 'origin') originGame.init();
-            else if (savedScreen === 'rush') rushGame.init();
-            else if (savedScreen === 'survival') survivalGame.init();
-            else if (savedScreen === 'daily') dailyGame.init();
-            else if (savedScreen === 'anotherworld') anotherGame.init();
-            app.showScreen(savedScreen);
+            if (savedScreen === 'origin') OriginGame.initialize();
+            else if (savedScreen === 'rush') RushGame.initialize();
+            else if (savedScreen === 'survival') SurvivalGame.initialize();
+            else if (savedScreen === 'daily') DailyGame.initialize();
+            else if (savedScreen === 'anotherworld') AnotherGame.init();
+            AppController.showScreen(savedScreen);
         } else { 
-            app.showScreen('menu'); 
+            AppController.showScreen('menu'); 
         }
     }
 };
