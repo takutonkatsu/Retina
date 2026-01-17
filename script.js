@@ -1180,7 +1180,7 @@ document.getElementById('versus-room-input').addEventListener('input', function(
 
 
 
-// ★修正: 究極のチュートリアル (テキスト修正)
+// ★修正: 究極のチュートリアル (リプレイ修正版)
 const Tutorial = {
     overlay: document.getElementById('tutorial-overlay'),
     phase1: document.getElementById('tut-phase-1'),
@@ -1206,7 +1206,13 @@ const Tutorial = {
 
     start: function() {
         this.overlay.classList.remove('hidden');
+        // ★追加: リプレイ時に透明度をリセット
+        this.overlay.style.opacity = '1';
+        
         this.phase1.classList.remove('hidden');
+        // ★追加: リプレイ時に透明度をリセット
+        this.phase1.style.opacity = '1';
+        
         this.phase2.classList.add('hidden');
         this.phase3.classList.add('hidden');
 
@@ -1329,9 +1335,10 @@ window.onload = function() {
     
     MenuLogic.init();
 
-    // ★修正: チュートリアル実行判定 (強制実行)
-    Tutorial.start(); 
-    // 本番用: if (!localStorage.getItem('visited')) { Tutorial.start(); }
+    // ★修正: チュートリアル実行判定 (初回のみ)
+    if (!localStorage.getItem('visited')) { 
+        Tutorial.start(); 
+    }
 
     if (roomParam) {
         const savedName = localStorage.getItem("friend_name");
@@ -1349,7 +1356,6 @@ window.onload = function() {
         const savedScreen = localStorage.getItem('current_screen');
         if (savedScreen && savedScreen !== 'menu') {
             
-            // ★修正: Daily Colorがプレイ済みならメニューへ飛ばす
             if (savedScreen === 'daily') {
                 const todayStr = Utils.getTodayString();
                 if (localStorage.getItem("daily_score_" + todayStr)) {
@@ -1362,7 +1368,7 @@ window.onload = function() {
             else if (savedScreen === 'rush') RushGame.initialize();
             else if (savedScreen === 'survival') SurvivalGame.initialize();
             else if (savedScreen === 'daily') DailyGame.initialize();
-            else if (savedScreen === 'anotherworld') AnotherGame.initialize(); // ★修正: init -> initialize
+            else if (savedScreen === 'anotherworld') AnotherGame.initialize();
             AppController.showScreen(savedScreen);
         } else { 
             AppController.showScreen('menu'); 
