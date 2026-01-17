@@ -78,8 +78,8 @@ const AppController = {
                 'level_name': mode
             });
         }
+
         if(mode === 'versus') {
-            
             this.showScreen('versus-menu');
             const savedName = localStorage.getItem("friend_name");
             if(savedName) document.getElementById('versus-name-input').value = savedName;
@@ -155,6 +155,22 @@ const Utils = {
         const g = Math.floor(Math.abs(this.seededRandom(hash + 1)) * 256);
         const b = Math.floor(Math.abs(this.seededRandom(hash + 2)) * 256);
         return { r, g, b, hex: this.rgbToHex(r, g, b) };
+    },
+    generateId: function() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    },
+    // ★追加: XSS対策用のエスケープ関数
+    escapeHtml: function(str) {
+        if (!str) return str;
+        return str.replace(/[&<>"']/g, function(m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[m];
+        });
     }
 };
 
@@ -358,7 +374,7 @@ const OriginGame = {
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'origin_result' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'origin_result' 
                 });
             }
 
@@ -697,7 +713,7 @@ const AnotherGame = {
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'color_storage_all' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'color_storage_single' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
                 });
             }
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
@@ -768,7 +784,7 @@ const AnotherGame = {
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'color_storage_single' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'color_storage_all' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
                 });
             }
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
@@ -1375,7 +1391,7 @@ const VersusGame = {
         activePlayers.forEach((p) => {
             let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : ''));
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
-            html += `<div class="res-grid-box"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${p.name}</span>${p.me ? '<span class="res-you-badge">(YOU)</span>' : ''}<div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
+            html += `<div class="res-grid-box"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span>${p.me ? '<span class="res-you-badge">(YOU)</span>' : ''}<div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
         });
         html += '</div>';
         resultContainer.innerHTML = html;
@@ -1399,7 +1415,7 @@ const VersusGame = {
         let compareHtml = ''; 
         let sortedByKey = [...activePlayers].sort((a, b) => a.key.localeCompare(b.key));
         sortedByKey.forEach(p => { 
-            compareHtml += `<div class="multi-compare-item"><p class="multi-compare-label">${p.name}</p><div class="mini-box" style="background:${p.color.hex}"></div><span class="rgb-value-text">${p.color.r},${p.color.g},${p.color.b}</span></div>`; 
+            compareHtml += `<div class="multi-compare-item"><p class="multi-compare-label">${Utils.escapeHtml(p.name)}</p><div class="mini-box" style="background:${p.color.hex}"></div><span class="rgb-value-text">${p.color.r},${p.color.g},${p.color.b}</span></div>`; 
         });
         playersCompContainer.innerHTML = compareHtml;
         
