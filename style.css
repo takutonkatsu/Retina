@@ -123,7 +123,7 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     cursor: pointer; 
     box-shadow: none; 
     border: 3px solid var(--bg-dark); 
-    margin-top: -8px; /* これでバーの中央に来るように調整 */
+    margin-top: -6px; /* これでバーの中央に来るように調整 (-8px -> -6px) */
     transition: transform 0.1s; 
 }
 .custom-range::-webkit-slider-thumb:active { transform: scale(1.2); }.val-num { width: 35px; text-align: right; font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); font-weight: bold; flex-shrink: 0; }

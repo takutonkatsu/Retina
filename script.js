@@ -225,8 +225,9 @@ const MenuLogic = {
 
 // ▼ Game Modes
 
-// Origin Mode
+// Origin Mode (Updated: High-Res Share 1200x800)
 const OriginGame = {
+    // ... (initialize, startNewRound, proceedToNextColor, submitGuess, displayResult, updateHistoryLog, clearSaveData are unchanged) ...
     questionColor: {},
     initialize: function() {
         this.els = { R: document.getElementById('origin-R'), G: document.getElementById('origin-G'), B: document.getElementById('origin-B'), valR: document.getElementById('origin-val-R'), valG: document.getElementById('origin-val-G'), valB: document.getElementById('origin-val-B'), qColor: document.getElementById('origin-question-color') };
@@ -310,37 +311,37 @@ const OriginGame = {
         const b = document.getElementById('origin-B').value;
         const inputHex = Utils.rgbToHex(Number(r), Number(g), Number(b));
 
-        canvas.width = 600;
-        canvas.height = 400; 
+        // ★修正: 高解像度化 (1200x800)
+        canvas.width = 1200;
+        canvas.height = 800; 
 
-        const grad = ctx.createLinearGradient(0, 0, 600, 400);
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
         grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, 600, 400);
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
 
         const img = document.getElementById('source-logo-icon');
-        if (img && img.complete) { ctx.drawImage(img, 25, 25, 50, 50); }
-        ctx.font = '900 32px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 90, 65);
-        ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff4757'; ctx.fillText("ORIGIN MODE", 450, 65);
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff4757'; ctx.fillText("ORIGIN MODE", 900, 125);
 
-        ctx.beginPath(); ctx.moveTo(30, 90); ctx.lineTo(570, 90); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.stroke();
-        ctx.font = '16px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; ctx.fillText(`Attempt #${count}`, 30, 120);
-        
-        ctx.textAlign = 'right'; ctx.fillText(`Ao5: ${ao5Text}`, 570, 120);
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; ctx.fillText(`Attempt #${count}`, 60, 240);
+        ctx.textAlign = 'right'; ctx.fillText(`Ao5: ${ao5Text}`, 1140, 240);
 
-        ctx.font = '900 90px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 300, 220);
-        ctx.font = '20px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 300, 140);
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
+        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
 
         const drawColor = (x, y, color, label) => {
-            ctx.font = 'bold 14px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 55);
-            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
+            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
             const rgbStr = Utils.hexToRgbString(color);
-            ctx.font = '14px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(rgbStr, x, y + 60);
+            ctx.font = '28px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(rgbStr, x, y + 120);
         };
-        drawColor(200, 310, targetHex, "TARGET");
-        drawColor(400, 310, inputHex, "YOU");
+        drawColor(400, 620, targetHex, "TARGET");
+        drawColor(800, 620, inputHex, "YOU");
 
-        ctx.font = '12px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 300, 385);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, 770);
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
@@ -353,7 +354,7 @@ const OriginGame = {
     }
 };
 
-// Rush Mode
+// Rush Mode (Updated: Score Cap)
 const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,
     initialize: function() {
@@ -398,6 +399,10 @@ const RushGame = {
             if (acc >= 99) timeDelta = 5; else if (acc >= 98) timeDelta = 4; else if (acc >= 95) timeDelta = 2; else timeDelta = 0; 
             this.combo++; this.score += (acc * 10) + (this.combo * 50); this.count++;
         }
+        
+        // ★修正: スコア上限 99999999
+        if (this.score > 99999999) this.score = 99999999;
+        
         this.timeLeft += timeDelta; if (this.timeLeft < 0) this.timeLeft = 0; 
         this.triggerVisualEffect(timeDelta, isBad, acc.toFixed(2)+"%");
         if (this.timeLeft > 0) { this.setNextColor(); } else { this.endGame(); }
@@ -426,7 +431,7 @@ const RushGame = {
     clearSaveData: function() { AppController.confirm("Reset Rush Records?", (y) => { if(y) { localStorage.removeItem('rush_best'); location.reload(); } }); }
 };
 
-// Survival Mode (Updated Buttons & Icons)
+// Survival Mode (Unchanged)
 const SurvivalGame = {
     aimScores: ["50.00", "60.00", "70.00", "75.00", "80.00", "85.00", "88.00", "90.00", "91.00", "92.00", "93.00", "94.00", "95.00", "95.50", "96.00", "96.50", "97.00", "97.50", "98.00", "98.50", "99.00", "99.30", "99.60", "99.90", "100.00"],
     currentStage: 1, questionColor: {},
@@ -502,7 +507,7 @@ const SurvivalGame = {
     }
 };
 
-// Another World (Color Storage) - Updated Share (Centered)
+// Another World (Color Storage) - Updated Share (High-Res 1200xAuto, Centered)
 const AnotherGame = {
     init: function() {
         this.els = { R: document.getElementById('another-R'), G: document.getElementById('another-G'), B: document.getElementById('another-B'), valR: document.getElementById('another-val-R'), valG: document.getElementById('another-val-G'), valB: document.getElementById('another-val-B'), myColor: document.getElementById('another-input-color') };
@@ -562,6 +567,8 @@ const AnotherGame = {
             }
         });
     },
+    
+    // ★修正: 高解像度(1200幅) & 中央寄せ
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -572,10 +579,10 @@ const AnotherGame = {
 
         const cols = 5;
         const rows = Math.ceil(count / cols);
-        const itemSize = 100;
-        const headerHeight = 120;
-        const footerHeight = 40;
-        const width = 600;
+        const itemSize = 200; 
+        const headerHeight = 240;
+        const footerHeight = 80;
+        const width = 1200;
         const height = headerHeight + (rows * itemSize) + footerHeight;
 
         canvas.width = width;
@@ -586,29 +593,33 @@ const AnotherGame = {
         ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
 
         const img = document.getElementById('source-logo-icon');
-        if (img && img.complete) { ctx.drawImage(img, 25, 25, 50, 50); }
-        ctx.font = '900 32px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 90, 65);
-        ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 440, 65);
-        ctx.beginPath(); ctx.moveTo(30, 90); ctx.lineTo(570, 90); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.stroke();
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
         for(let i=1; i<max; i++) {
             const hex = localStorage.getItem("3input_rgb16"+i);
             const txt = localStorage.getItem("3input_rgb"+i); 
             
             const idx = i - 1;
-            const x = 80 + (idx % cols) * 110; 
-            const y = headerHeight + 50 + Math.floor(idx / cols) * 100;
+            // Center logic: 5 cols. 1200 width. 240px per item space.
+            // Center of item space is 120, 360, 600, 840, 1080.
+            // Circle radius is 70.
+            // x = Center - 70? No, arc(x,y) uses center.
+            const x = 120 + (idx % cols) * 240; 
+            const y = headerHeight + 100 + Math.floor(idx / cols) * 200;
 
             ctx.save();
-            ctx.beginPath(); ctx.arc(x, y, 35, 0, Math.PI * 2); ctx.fillStyle = hex; ctx.fill();
-            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+            ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fillStyle = hex; ctx.fill();
+            ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
             ctx.restore();
 
-            ctx.font = '10px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center';
-            ctx.fillText(txt.replace(/[()]/g, ''), x, y + 50); 
+            ctx.font = '20px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center';
+            ctx.fillText(txt.replace(/[()]/g, ''), x, y + 100); 
         }
 
-        ctx.font = '12px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 300, height - 15);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, height - 30);
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
@@ -631,7 +642,7 @@ const AnotherGame = {
     }
 };
 
-// Daily Game Mode
+// Daily Game Mode (Updated Share: High-Res 1200x800)
 const DailyGame = {
     targetColor: {}, dateStr: "", timerInterval: null, els:{},
     initialize: function() {
@@ -704,32 +715,32 @@ const DailyGame = {
         const targetHex = this.targetColor.hex;
         const savedInputHex = localStorage.getItem("daily_input_hex_" + this.dateStr) || "#000000";
         
-        canvas.width = 600;
-        canvas.height = 400; // 横長
+        canvas.width = 1200;
+        canvas.height = 800;
 
-        const grad = ctx.createLinearGradient(0, 0, 600, 400);
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
         grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, 600, 400);
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
 
         const img = document.getElementById('source-logo-icon');
-        if (img && img.complete) { ctx.drawImage(img, 25, 25, 50, 50); }
-        ctx.font = '900 32px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 90, 65);
-        ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; ctx.fillText("DAILY CHALLENGE", 420, 65);
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; ctx.fillText("DAILY CHALLENGE", 840, 125);
 
-        ctx.beginPath(); ctx.moveTo(30, 90); ctx.lineTo(570, 90); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.stroke();
-        ctx.font = '16px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center'; ctx.fillText(dateText, 300, 120);
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center'; ctx.fillText(dateText, 600, 240);
 
-        ctx.font = '900 90px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 300, 220);
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
         
         const drawColor = (x, y, color, label) => {
-            ctx.font = 'bold 14px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 55);
-            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-            ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
+            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
         };
-        drawColor(200, 310, targetHex, "TARGET");
-        drawColor(400, 310, savedInputHex, "YOU");
+        drawColor(400, 620, targetHex, "TARGET");
+        drawColor(800, 620, savedInputHex, "YOU");
 
-        ctx.font = '12px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 300, 385);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, 770);
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
@@ -741,7 +752,6 @@ const DailyGame = {
         });
     }
 };
-
 
 // ▼ VERSUS MODE (Unified 2-4 Players)
 const VersusGame = {
