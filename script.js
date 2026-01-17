@@ -963,15 +963,11 @@ const VersusGame = {
             }
 
             if (data.state === 'finished') {
-                // ★修正: onDisconnectをキャンセルしない（退出時にemptyになるようにする）
+                // ★修正: onDisconnectをキャンセルしない！
+                // これによりリザルト画面でのタスクキルも検知され、statusがemptyになります。
                 
                 if (!this.resultData) {
                     let finalData = JSON.parse(JSON.stringify(data));
-                    Object.keys(this.cachedPlayers).forEach(key => {
-                        if (!finalData.players[key] || finalData.players[key].status === 'empty') {
-                            finalData.players[key] = this.cachedPlayers[key];
-                        }
-                    });
                     this.resultData = finalData;
                 }
                 this.showResult(this.resultData, data); 
@@ -1141,7 +1137,8 @@ const VersusGame = {
         }); 
     },
 
-    confirmExit: function() { AppController.confirm("Exit Multiplayer?", (y) => { if(y) this.exitRoom(); }); },
+    // ★修正: メッセージを「Exit Room?」に変更
+    confirmExit: function() { AppController.confirm("Exit Room?", (y) => { if(y) this.exitRoom(); }); },
     exitRoom: function(isPassive) { 
         if(this.roomRef && !isPassive) { 
             this.roomRef.off(); 
@@ -1250,8 +1247,11 @@ const VersusGame = {
             
             btn.innerHTML = 'RETURN TO MENU';
             btn.disabled = false;
-            btn.style.background = "var(--primary-multi)";
-            btn.onclick = () => this.confirmExit();
+            // ★修正: デザイン変更 (.btn-returnクラス適用)
+            btn.className = "btn-primary btn-return";
+            btn.style.background = ""; // Reset inline style
+            // ★修正: アラートなしで即終了
+            btn.onclick = () => this.exitRoom();
             
             if(exitBtn) exitBtn.classList.add('hidden');
             
@@ -1261,6 +1261,8 @@ const VersusGame = {
             if(exitBtn) exitBtn.classList.remove('hidden');
 
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
+            btn.className = "btn-primary"; // Reset class
+            btn.style.background = "";
             btn.onclick = () => this.voteContinue();
 
             // Check MY live status from logicData
