@@ -1,7 +1,5 @@
-<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-04Q9P2MCL8"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
@@ -422,6 +420,9 @@
     </main>
 
     <footer class="app-footer">
+        <div style="margin-bottom: 10px;">
+            <span class="btn-text" style="font-size: 0.75rem; text-decoration: none; opacity: 0.7;" onclick="AppController.showPolicy()">Privacy & Terms</span>
+        </div>
         <div class="copyright" onclick="AppController.startGameMode('anotherworld')">&copy; 2023-2026 Takutonkatsu</div>
     </footer>
     
@@ -489,6 +490,30 @@
             <div class="custom-modal-actions">
                 <button id="custom-confirm-yes" class="void-btn btn-set" style="font-size:1rem; padding:10px 20px;">YES</button>
                 <button id="custom-confirm-no" class="void-btn btn-del" style="font-size:1rem; padding:10px 20px;">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="policy-modal" class="custom-modal-overlay hidden">
+        <div class="custom-modal-box policy-box">
+            <h3 style="color:#fff; margin-top:0; border-bottom:1px solid #444; padding-bottom:10px;">運営ポリシー</h3>
+            <div class="policy-content">
+                <h4>1. 免責事項</h4>
+                <p>本アプリはエンターテインメントを目的としたゲームであり、医学的な色彩感覚や色覚の検査・診断を目的としたものではありません。本アプリの結果を医学的判断の根拠にしないでください。</p>
+                <p>本アプリの利用により生じた損害について、開発者は一切の責任を負いません。</p>
+                
+                <h4>2. プライバシーポリシー</h4>
+                <p>本アプリでは、利用状況の分析とサービス向上のため、Google Analyticsを使用しています。データは匿名で収集され、個人を特定するものではありません。</p>
+                <p>Versusモード（対戦機能）では、ゲーム進行のためにGoogle Firebaseを使用し、一時的にプレイデータ（ニックネーム、スコア等）をサーバーに保存しますが、これらのデータはゲーム終了後に削除、または一定期間後に破棄されます。</p>
+                
+                <h4>3. 禁止事項</h4>
+                <p>サーバーへの過度な負荷をかける行為、不正な手段でのスコア改ざん、他者への迷惑行為を禁止します。</p>
+                
+                <h4>4. 著作権</h4>
+                <p>本アプリ内の画像、プログラム等のコンテンツの著作権はTakutonkatsuに帰属します。</p>
+            </div>
+            <div class="custom-modal-actions" style="margin-top:15px;">
+                <button class="void-btn btn-set" style="font-size:0.9rem; padding:8px 20px;" onclick="document.getElementById('policy-modal').classList.add('hidden')">CLOSE</button>
             </div>
         </div>
     </div>

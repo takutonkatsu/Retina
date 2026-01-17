@@ -71,6 +71,12 @@ const AppController = {
         }
     },
 
+    // ★追加: ポリシーモーダル表示
+    showPolicy: function() {
+        const modal = document.getElementById('policy-modal');
+        if (modal) modal.classList.remove('hidden');
+    },
+
     startGameMode: function(mode) {
         // ★追加: GA4 イベント計測 (モード開始)
         if (typeof gtag !== 'undefined') {
