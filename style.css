@@ -103,7 +103,28 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 
 /* Footer */
 .app-footer { text-align: center; padding: 25px 0 35px; margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.3); }
-.copyright { display: inline-block; font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.6; letter-spacing: 1px; cursor: pointer; user-select: none; padding: 6px 12px; }
+/* Footer Button Style */
+.copyright { 
+    display: inline-block; 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+    font-family: var(--font-mono); 
+    /* opacity: 0.6;  <- 視認性向上のため削除またはコメントアウト */
+    letter-spacing: 1px; 
+    cursor: pointer; 
+    user-select: none; 
+    padding: 8px 16px; 
+    /* 追加: ボタンらしい見た目 */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.2s;
+}
+.copyright:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
 
 /* Game UI */
 .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }

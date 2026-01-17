@@ -13,9 +13,8 @@ const db = firebase.database();
 
 // ▼ App Controller
 const AppController = {
-    secretCount: 0,
-    secretTimer: null,
-
+    // secretCount, secretTimer は不要になったので削除してOKですが、残しても害はありません。
+    
     alert: function(msg, callback) {
         document.getElementById('custom-alert-text').innerText = msg;
         const modal = document.getElementById('custom-alert-modal');
@@ -87,13 +86,6 @@ const AppController = {
         if(mode === 'rush') RushGame.initialize();
         if(mode === 'daily') DailyGame.initialize(); 
         if(mode === 'anotherworld') AnotherGame.initialize();
-    },
-
-    handleEasterEgg: function() {
-        this.secretCount++;
-        clearTimeout(this.secretTimer);
-        this.secretTimer = setTimeout(() => { this.secretCount = 0; }, 1000); 
-        if(this.secretCount >= 5) { this.secretCount = 0; this.startGameMode('anotherworld'); }
     }
 };
 
@@ -225,9 +217,9 @@ const MenuLogic = {
 
 // ▼ Game Modes
 
-// Origin Mode (Updated: High-Res Share 1200x800)
+// Origin Mode
 const OriginGame = {
-    // ... (initialize, startNewRound, proceedToNextColor, submitGuess, displayResult, updateHistoryLog, clearSaveData are unchanged) ...
+    // ... (initialize ~ clearSaveData は維持) ...
     questionColor: {},
     initialize: function() {
         this.els = { R: document.getElementById('origin-R'), G: document.getElementById('origin-G'), B: document.getElementById('origin-B'), valR: document.getElementById('origin-val-R'), valG: document.getElementById('origin-val-G'), valB: document.getElementById('origin-val-B'), qColor: document.getElementById('origin-question-color') };
@@ -295,6 +287,8 @@ const OriginGame = {
     clearSaveData: function() { 
         AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
     },
+    
+    // ★修正: ロゴ「Retina」 & URL変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -311,7 +305,6 @@ const OriginGame = {
         const b = document.getElementById('origin-B').value;
         const inputHex = Utils.rgbToHex(Number(r), Number(g), Number(b));
 
-        // ★修正: 高解像度化 (1200x800)
         canvas.width = 1200;
         canvas.height = 800; 
 
@@ -321,7 +314,8 @@ const OriginGame = {
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125); // 修正: Retina
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff4757'; ctx.fillText("ORIGIN MODE", 900, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
@@ -341,7 +335,8 @@ const OriginGame = {
         drawColor(400, 620, targetHex, "TARGET");
         drawColor(800, 620, inputHex, "YOU");
 
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, 770);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
@@ -512,7 +507,7 @@ const SurvivalGame = {
     }
 };
 
-// Another World (Color Storage) - Updated Share (High-Res 1200xAuto, Centered + Single Share)
+// Another World (Color Storage)
 const AnotherGame = {
     initialize: function() {
         this.els = { R: document.getElementById('another-R'), G: document.getElementById('another-G'), B: document.getElementById('another-B'), valR: document.getElementById('another-val-R'), valG: document.getElementById('another-val-G'), valB: document.getElementById('another-val-B'), myColor: document.getElementById('another-input-color') };
@@ -544,7 +539,6 @@ const AnotherGame = {
             const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; 
             const txt = localStorage.getItem("3input_rgb"+i) || ''; 
             const date = localStorage.getItem("3date"+i) || '';
-            // 修正: シェアボタンを追加
             html += `<div class="history-item">
                 <span class="history-index">#${i}</span>
                 <div class="history-colors">
@@ -587,7 +581,7 @@ const AnotherGame = {
         });
     },
     
-    // ★追加: 単体シェア機能 (Origin風デザイン)
+    // ★修正: 単体シェアのレイアウト (重なり防止、ロゴ修正)
     shareSingleItem: function(index) {
         const hex = localStorage.getItem("3input_rgb16" + index);
         const rgbTxt = localStorage.getItem("3input_rgb" + index);
@@ -601,29 +595,27 @@ const AnotherGame = {
         canvas.width = 1200;
         canvas.height = 800;
 
-        // Background
         const grad = ctx.createLinearGradient(0, 0, 1200, 800);
         grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
 
-        // Logo
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125); // 修正: Retina
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
 
-        // Line
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // Info Text
         ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; 
         ctx.fillText(`No. ${index}`, 60, 240);
         ctx.textAlign = 'right'; 
         ctx.fillText(date, 1140, 240);
 
-        // Main Color Circle
+        // 円と文字の位置調整
+        // 円の中心Yを少し上にずらす (500 -> 480)
         const centerX = 600;
-        const centerY = 500;
+        const centerY = 480; 
         ctx.save();
         ctx.beginPath(); 
         ctx.arc(centerX, centerY, 180, 0, Math.PI * 2); 
@@ -634,12 +626,12 @@ const AnotherGame = {
         ctx.stroke(); 
         ctx.restore();
 
-        // RGB Text
-        const rgbClean = rgbTxt.replace(/[()]/g, ''); // (255,0,0) -> 255,0,0
+        // RGB値のY座標を調整 (overlap回避)
+        const rgbClean = rgbTxt.replace(/[()]/g, ''); 
         ctx.font = '900 60px "Inter", sans-serif'; 
         ctx.fillStyle = '#ffffff'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText(rgbClean, centerX, centerY + 280);
+        ctx.fillText(rgbClean, centerX, centerY + 250); // 730付近
 
         // Footer URL
         ctx.font = '24px sans-serif'; 
@@ -647,7 +639,6 @@ const AnotherGame = {
         ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
 
-        // Share
         canvas.toBlob(blob => {
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -661,7 +652,7 @@ const AnotherGame = {
         });
     },
 
-    // 全体シェア
+    // ★修正: 全体シェア (ロゴ & URL)
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -687,7 +678,8 @@ const AnotherGame = {
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125); // 修正: Retina
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
@@ -708,7 +700,8 @@ const AnotherGame = {
             ctx.fillText(txt.replace(/[()]/g, ''), x, y + 100); 
         }
 
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("https://takutonkatsu.github.io/Retina", 600, height - 30);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, height - 30); // 修正: URL
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
@@ -733,7 +726,6 @@ const AnotherGame = {
 
 // Daily Game Mode
 const DailyGame = {
-    // ... (initialize, submitGuess, displayResult, startTimer are unchanged) ...
     targetColor: {}, dateStr: "", timerInterval: null, els:{},
     initialize: function() {
         if(this.timerInterval) clearInterval(this.timerInterval);
@@ -797,7 +789,7 @@ const DailyGame = {
         this.timerInterval = setInterval(updateTimer, 1000);
     },
 
-    // ★修正: URL変更
+    // ★修正: ロゴ「Retina」 & URL変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -815,7 +807,8 @@ const DailyGame = {
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125); // 修正: Retina
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; ctx.fillText("DAILY CHALLENGE", 840, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
@@ -831,7 +824,8 @@ const DailyGame = {
         drawColor(400, 620, targetHex, "TARGET");
         drawColor(800, 620, savedInputHex, "YOU");
 
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
