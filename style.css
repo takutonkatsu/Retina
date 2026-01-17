@@ -68,7 +68,20 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 
 /* Cards & Grid */
 .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 40px; }
-.game-card { background: rgba(20, 22, 28, 0.6); border: 1px solid var(--panel-border); border-radius: 16px; padding: 18px; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+/* 修正: カード内のテキストを常に左揃えにする */
+.game-card { 
+    background: rgba(20, 22, 28, 0.6); 
+    border: 1px solid var(--panel-border); 
+    border-radius: 16px; 
+    padding: 18px; 
+    display: flex; 
+    align-items: center; 
+    cursor: pointer; 
+    transition: transform 0.2s, box-shadow 0.2s; 
+    position: relative; 
+    overflow: hidden; 
+    text-align: left; /* 追加: 強制的に左揃え */
+}
 .game-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); background: rgba(30, 32, 40, 0.8); border-color: rgba(255, 255, 255, 0.2); }
 .game-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
 .card-origin::before { background: var(--accent-red); } .card-rush::before { background: var(--accent-green); } .card-survival::before { background: var(--accent-blue); } .card-versus::before { background: var(--primary-multi); }
@@ -205,9 +218,39 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .btn-delete { background: transparent; border: none; color: #555; cursor: pointer; font-size: 1rem; padding: 0; transition: 0.2s; }
 .btn-delete:hover { color: var(--accent-red); transform: scale(1.2); }
 
+/* 追加: リスト内シェアボタン */
+.btn-share-icon { 
+    background: transparent; 
+    border: none; 
+    color: var(--primary-multi); /* 紫系 */
+    cursor: pointer; 
+    font-size: 1rem; 
+    padding: 0; 
+    transition: 0.2s; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-share-icon:hover { 
+    color: #fff; 
+    text-shadow: 0 0 5px var(--primary-multi);
+    transform: scale(1.2); 
+}
+
 /* History List */
 .history-log { margin-top: 15px; text-align: left; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 8px; }
-.history-item { display: grid; grid-template-columns: 35px 1fr 30px; gap: 8px; align-items: center; padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); background: rgba(255, 255, 255, 0.02); border-radius: 8px; margin-bottom: 4px; }
+/* 修正: グリッドのカラム定義を変更 (シェアボタン分を追加) */
+.history-item { 
+    display: grid; 
+    grid-template-columns: 35px 1fr 30px 30px; /* 変更: 30px 30px に */
+    gap: 8px; 
+    align-items: center; 
+    padding: 10px 8px; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    background: rgba(255, 255, 255, 0.02); 
+    border-radius: 8px; 
+    margin-bottom: 4px; 
+}
 .history-item.best-record { background: linear-gradient(90deg, rgba(255, 165, 2, 0.1), transparent); border-left: 3px solid var(--accent-yellow); }
 .history-item.best-record .history-index { color: var(--accent-yellow); font-weight: bold; }
 .history-item.best-record .history-score-val { color: var(--accent-yellow); }

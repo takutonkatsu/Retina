@@ -512,9 +512,8 @@ const SurvivalGame = {
     }
 };
 
-// Another World (Color Storage) - Updated Share (High-Res 1200xAuto, Centered)
+// Another World (Color Storage) - Updated Share (High-Res 1200xAuto, Centered + Single Share)
 const AnotherGame = {
-    // ★修正: init -> initialize にリネーム (呼び出し元と一致させる)
     initialize: function() {
         this.els = { R: document.getElementById('another-R'), G: document.getElementById('another-G'), B: document.getElementById('another-B'), valR: document.getElementById('another-val-R'), valG: document.getElementById('another-val-G'), valB: document.getElementById('another-val-B'), myColor: document.getElementById('another-input-color') };
         const update = () => this.updateMyColor(); 
@@ -542,8 +541,22 @@ const AnotherGame = {
         const val = Number(localStorage.getItem("3index")) || 1;
         let html = "";
         for(let i = val - 1; i > 0; i--) {
-            const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; const txt = localStorage.getItem("3input_rgb"+i) || ''; const date = localStorage.getItem("3date"+i) || '';
-            html += `<div class="history-item" style="grid-template-columns: 35px 1fr 30px;"><span class="history-index">#${i}</span><div class="history-colors"><div class="color-row"><span class="chip-xs" style="background:${hex}; width:20px; height:20px;"></span><span style="font-size:1rem; font-weight:bold; color:#fff;">${txt}</span></div><div style="font-size:0.7rem; color:#666; margin-top:2px;">${date}</div></div><button class="btn-delete" onclick="AnotherGame.deleteSingleItem(${i})">✕</button></div>`;
+            const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; 
+            const txt = localStorage.getItem("3input_rgb"+i) || ''; 
+            const date = localStorage.getItem("3date"+i) || '';
+            // 修正: シェアボタンを追加
+            html += `<div class="history-item">
+                <span class="history-index">#${i}</span>
+                <div class="history-colors">
+                    <div class="color-row">
+                        <span class="chip-xs" style="background:${hex}; width:20px; height:20px;"></span>
+                        <span style="font-size:1rem; font-weight:bold; color:#fff;">${txt}</span>
+                    </div>
+                    <div style="font-size:0.7rem; color:#666; margin-top:2px;">${date}</div>
+                </div>
+                <button class="btn-share-icon" onclick="AnotherGame.shareSingleItem(${i})">📤</button>
+                <button class="btn-delete" onclick="AnotherGame.deleteSingleItem(${i})">✕</button>
+            </div>`;
         }
         list.innerHTML = html;
     },
@@ -574,7 +587,81 @@ const AnotherGame = {
         });
     },
     
-    // ★修正: URL変更 (https://takutonkatsu.github.io/Retina)
+    // ★追加: 単体シェア機能 (Origin風デザイン)
+    shareSingleItem: function(index) {
+        const hex = localStorage.getItem("3input_rgb16" + index);
+        const rgbTxt = localStorage.getItem("3input_rgb" + index);
+        const date = localStorage.getItem("3date" + index);
+        
+        if (!hex) return;
+
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 1200;
+        canvas.height = 800;
+
+        // Background
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
+
+        // Logo
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; ctx.fillText("RETINA", 180, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+
+        // Line
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        
+        // Info Text
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; 
+        ctx.fillText(`No. ${index}`, 60, 240);
+        ctx.textAlign = 'right'; 
+        ctx.fillText(date, 1140, 240);
+
+        // Main Color Circle
+        const centerX = 600;
+        const centerY = 500;
+        ctx.save();
+        ctx.beginPath(); 
+        ctx.arc(centerX, centerY, 180, 0, Math.PI * 2); 
+        ctx.fillStyle = hex; 
+        ctx.fill();
+        ctx.lineWidth = 10; 
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; 
+        ctx.stroke(); 
+        ctx.restore();
+
+        // RGB Text
+        const rgbClean = rgbTxt.replace(/[()]/g, ''); // (255,0,0) -> 255,0,0
+        ctx.font = '900 60px "Inter", sans-serif'; 
+        ctx.fillStyle = '#ffffff'; 
+        ctx.textAlign = 'center'; 
+        ctx.fillText(rgbClean, centerX, centerY + 280);
+
+        // Footer URL
+        ctx.font = '24px sans-serif'; 
+        ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
+        ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
+
+        // Share
+        canvas.toBlob(blob => {
+            const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ files: [file], title: 'Retina Saved Color' }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); 
+                link.download = `retina_color_${index}.png`; 
+                link.href = canvas.toDataURL(); 
+                link.click();
+            }
+        });
+    },
+
+    // 全体シェア
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
