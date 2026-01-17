@@ -400,22 +400,32 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #0f1115; z-index: 9999;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
+    overflow-y: auto; /* スマホで内容が溢れないように */
 }
 .tut-content {
     text-align: center; width: 100%; max-width: 600px; padding: 20px;
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.8s ease-out;
     display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
 .tut-logo {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
-    animation: floatUp 1s ease-out;
+    animation: fadeIn 1s ease-out;
 }
 .tut-logo-img { width: 80px; height: 80px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
 .tut-logo-text { font-family: var(--font-ui); font-weight: 900; font-size: 2rem; color: #fff; letter-spacing: 2px; }
-.tut-title {
-    font-family: var(--font-ui); font-weight: 900; font-size: 2rem; color: #fff; letter-spacing: 2px;
-    animation: fadeIn 1.5s ease-out; margin: 0;
+
+/* Stylish Subtitle */
+.tut-subtitle {
+    font-family: var(--font-ui);
+    font-weight: 200; /* Thin */
+    font-size: 1.2rem;
+    color: #8b9bb4;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: fadeIn 2s ease-out;
+    margin-top: 10px;
 }
+
 .tut-skip {
     position: absolute; top: 20px; right: 20px;
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
@@ -438,12 +448,42 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .tut-controls-wrapper { width: 100%; max-width: 400px; margin: 0 auto; }
 .tut-guide {
     font-family: var(--font-mono); color: var(--text-muted); font-size: 1.2rem; margin-top: 20px;
-    animation: blink 2s infinite; font-weight: bold;
+    min-height: 1.5em; /* Prevent layout jump */
 }
+
+/* Stylish PERFECT */
 .tut-perfect {
-    font-size: 2.5rem; font-weight: 900; color: var(--accent-gold);
-    text-shadow: 0 0 20px rgba(255, 165, 2, 0.6);
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.1em;
+    border-bottom: 2px solid var(--accent-gold);
+    padding-bottom: 5px;
+    animation: tracking-in-expand 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
+}
+@keyframes tracking-in-expand {
+  0% { letter-spacing: -0.5em; opacity: 0; }
+  40% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Finale */
+.tut-finale {
+    font-family: var(--font-ui);
+    font-weight: 200;
+    font-size: 2rem;
+    color: #fff;
+    line-height: 1.2;
+    animation: fadeIn 1s ease-out;
+}
+.tut-finale .highlight {
+    font-weight: 900;
+    font-size: 3rem;
+    background: linear-gradient(to right, #fff, #999);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Disabled Slider in Tutorial */

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;700;900&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -423,12 +423,14 @@
                 <img src="Retina_icon.png" alt="logo" class="tut-logo-img">
                 <span class="tut-logo-text">Retina</span>
             </div>
-            <h1 id="tut-msg-1" class="tut-title hidden">Match the Color.</h1>
         </div>
         
         <div id="tut-phase-2" class="tut-content hidden">
+            <h2 class="tut-subtitle" style="margin-bottom:20px; display:block;">Match the Color.</h2>
+            
             <div class="tut-demo-container">
                 <div id="tut-target-box" class="tut-target-box">
+                    <span class="overlay-text">?</span>
                     <span class="tut-label-overlay">TARGET</span>
                 </div>
                 <div id="tut-user-box" class="tut-user-box">
@@ -452,11 +454,11 @@
                     <span id="tut-val-b" class="val-num">0</span>
                 </div>
             </div>
-            <div id="tut-guide-text" class="tut-guide">Match Red</div>
+            <div id="tut-guide-text" class="tut-guide"></div>
         </div>
 
         <div id="tut-phase-3" class="tut-content hidden">
-            <h1 class="tut-title" style="font-size:2rem; animation:popIn 0.5s;">Let's Enjoy<br><span style="color:var(--primary-multi);">Retina</span></h1>
+            <h1 class="tut-finale">Let's Enjoy<br><span class="highlight">Retina</span></h1>
         </div>
     </div>
 

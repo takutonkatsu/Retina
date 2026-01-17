@@ -514,7 +514,8 @@ const SurvivalGame = {
 
 // Another World (Color Storage) - Updated Share (High-Res 1200xAuto, Centered)
 const AnotherGame = {
-    init: function() {
+    // ★修正: init -> initialize にリネーム (呼び出し元と一致させる)
+    initialize: function() {
         this.els = { R: document.getElementById('another-R'), G: document.getElementById('another-G'), B: document.getElementById('another-B'), valR: document.getElementById('another-val-R'), valG: document.getElementById('another-val-G'), valB: document.getElementById('another-val-B'), myColor: document.getElementById('another-input-color') };
         const update = () => this.updateMyColor(); 
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
@@ -573,7 +574,7 @@ const AnotherGame = {
         });
     },
     
-    // ★修正: 高解像度(1200幅) & 中央寄せ
+    // ★修正: URL変更 (https://takutonkatsu.github.io/Retina)
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -608,10 +609,6 @@ const AnotherGame = {
             const txt = localStorage.getItem("3input_rgb"+i); 
             
             const idx = i - 1;
-            // Center logic: 5 cols. 1200 width. 240px per item space.
-            // Center of item space is 120, 360, 600, 840, 1080.
-            // Circle radius is 70.
-            // x = Center - 70? No, arc(x,y) uses center.
             const x = 120 + (idx % cols) * 240; 
             const y = headerHeight + 100 + Math.floor(idx / cols) * 200;
 
@@ -624,7 +621,7 @@ const AnotherGame = {
             ctx.fillText(txt.replace(/[()]/g, ''), x, y + 100); 
         }
 
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, height - 30);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("https://takutonkatsu.github.io/Retina", 600, height - 30);
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
@@ -647,8 +644,9 @@ const AnotherGame = {
     }
 };
 
-// Daily Game Mode (Updated Share: High-Res 1200x800)
+// Daily Game Mode
 const DailyGame = {
+    // ... (initialize, submitGuess, displayResult, startTimer are unchanged) ...
     targetColor: {}, dateStr: "", timerInterval: null, els:{},
     initialize: function() {
         if(this.timerInterval) clearInterval(this.timerInterval);
@@ -712,6 +710,7 @@ const DailyGame = {
         this.timerInterval = setInterval(updateTimer, 1000);
     },
 
+    // ★修正: URL変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -745,7 +744,7 @@ const DailyGame = {
         drawColor(400, 620, targetHex, "TARGET");
         drawColor(800, 620, savedInputHex, "YOU");
 
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("Retina.web.app", 600, 770);
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
 
         canvas.toBlob(blob => {
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
@@ -1179,19 +1178,16 @@ const VersusGame = {
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
 
-// ... (Firebase Config, AppController, Utils, MenuLogic, OriginGame, RushGame, SurvivalGame, AnotherGame, DailyGame, VersusGame は前回の内容を維持) ...
-// ※文字数制限のため省略しますが、必ず前回のコードを使用してください。
-// ※下記に Tutorial オブジェクトと window.onload の変更点を記述します。
 
-// ★修正: 究極のチュートリアル (3段階デモ)
+
+// ★修正: 究極のチュートリアル (テキスト修正)
 const Tutorial = {
     overlay: document.getElementById('tutorial-overlay'),
     phase1: document.getElementById('tut-phase-1'),
     phase2: document.getElementById('tut-phase-2'),
     phase3: document.getElementById('tut-phase-3'),
     
-    // Phase 1 Elements
-    msg1: document.getElementById('tut-msg-1'),
+    // Phase 1 Elements (Msg 1 removed from here)
     
     // Phase 2 Elements
     targetBox: document.getElementById('tut-target-box'),
@@ -1213,20 +1209,16 @@ const Tutorial = {
         this.phase1.classList.remove('hidden');
         this.phase2.classList.add('hidden');
         this.phase3.classList.add('hidden');
-        this.msg1.classList.add('hidden');
 
-        // Animation Sequence: Logo -> Text -> Demo
+        // Animation: Logo FadeIn -> Wait -> FadeOut -> Phase2
         setTimeout(() => {
-            this.msg1.classList.remove('hidden'); // Show "Match the Color"
+            this.phase1.style.opacity = '0';
+            this.phase1.style.transition = 'opacity 0.5s';
             setTimeout(() => {
-                this.phase1.style.opacity = '0';
-                this.phase1.style.transition = 'opacity 0.5s';
-                setTimeout(() => {
-                    this.phase1.classList.add('hidden');
-                    this.startDemoPhase();
-                }, 500);
-            }, 2000);
-        }, 1500);
+                this.phase1.classList.add('hidden');
+                this.startDemoPhase();
+            }, 500);
+        }, 2000);
     },
 
     skip: function() {
@@ -1243,20 +1235,15 @@ const Tutorial = {
         this.startStage1();
     },
 
-    // --- Stage 1: RED (255, 0, 0) ---
+    // --- Stage 1: RED ---
     startStage1: function() {
         this.currentStage = 1;
-        this.guideText.className = "tut-guide";
-        this.guideText.innerText = "Slide Red to 255";
-        
-        // Setup Colors
+        this.guideText.innerText = ""; 
         this.setTargetColor(255, 0, 0);
         this.setUserColor(0, 0, 0);
-
-        // Setup Sliders
-        this.setupSlider(this.rangeR, this.valR, 0, false); // Active
-        this.setupSlider(this.rangeG, this.valG, 0, true);  // Disabled
-        this.setupSlider(this.rangeB, this.valB, 0, true);  // Disabled
+        this.setupSlider(this.rangeR, this.valR, 0, false); 
+        this.setupSlider(this.rangeG, this.valG, 0, true);  
+        this.setupSlider(this.rangeB, this.valB, 0, true);  
 
         this.rangeR.oninput = (e) => {
             const val = parseInt(e.target.value);
@@ -1266,17 +1253,13 @@ const Tutorial = {
         };
     },
 
-    // --- Stage 2: ORANGE (255, 128, 0) ---
+    // --- Stage 2: ORANGE ---
     startStage2: function() {
         this.currentStage = 2;
-        this.guideText.className = "tut-guide";
-        this.guideText.innerText = "Slide Green to 128";
-
+        this.guideText.innerText = "";
         this.setTargetColor(255, 128, 0);
-        
-        // R is fixed at 255 from previous stage
         this.setupSlider(this.rangeR, this.valR, 255, true); 
-        this.setupSlider(this.rangeG, this.valG, 0, false); // Active
+        this.setupSlider(this.rangeG, this.valG, 0, false); 
         this.setupSlider(this.rangeB, this.valB, 0, true);
 
         this.rangeG.oninput = (e) => {
@@ -1287,17 +1270,14 @@ const Tutorial = {
         };
     },
 
-    // --- Stage 3: PINK (255, 128, 255) ---
+    // --- Stage 3: PINK ---
     startStage3: function() {
         this.currentStage = 3;
-        this.guideText.className = "tut-guide";
-        this.guideText.innerText = "Slide Blue to 255";
-
+        this.guideText.innerText = "";
         this.setTargetColor(255, 128, 255);
-
         this.setupSlider(this.rangeR, this.valR, 255, true);
         this.setupSlider(this.rangeG, this.valG, 128, true);
-        this.setupSlider(this.rangeB, this.valB, 0, false); // Active
+        this.setupSlider(this.rangeB, this.valB, 0, false); 
 
         this.rangeB.oninput = (e) => {
             const val = parseInt(e.target.value);
@@ -1321,15 +1301,16 @@ const Tutorial = {
         el.oninput = null; // Clear previous listener
     },
     stageClear: function(nextCallback) {
-        // Disable current active slider
         if(this.currentStage === 1) this.rangeR.disabled = true;
         if(this.currentStage === 2) this.rangeG.disabled = true;
         if(this.currentStage === 3) this.rangeB.disabled = true;
 
         this.guideText.className = "tut-perfect";
-        this.guideText.innerText = "PERFECT!";
+        this.guideText.innerText = "PERFECT";
         
         setTimeout(() => {
+            this.guideText.className = "tut-guide"; 
+            this.guideText.innerText = "";
             nextCallback();
         }, 1200);
     },
@@ -1337,10 +1318,7 @@ const Tutorial = {
     showFinale: function() {
         this.phase2.classList.add('hidden');
         this.phase3.classList.remove('hidden');
-        
-        setTimeout(() => {
-            this.skip(); // Close tutorial
-        }, 2500);
+        setTimeout(() => { this.skip(); }, 2500);
     }
 };
 
@@ -1352,8 +1330,8 @@ window.onload = function() {
     MenuLogic.init();
 
     // ★修正: チュートリアル実行判定 (強制実行)
-    // 本番時はここを: if (!localStorage.getItem('visited')) { Tutorial.start(); } に変更
-    Tutorial.start();
+    Tutorial.start(); 
+    // 本番用: if (!localStorage.getItem('visited')) { Tutorial.start(); }
 
     if (roomParam) {
         const savedName = localStorage.getItem("friend_name");
@@ -1370,11 +1348,21 @@ window.onload = function() {
     } else {
         const savedScreen = localStorage.getItem('current_screen');
         if (savedScreen && savedScreen !== 'menu') {
+            
+            // ★修正: Daily Colorがプレイ済みならメニューへ飛ばす
+            if (savedScreen === 'daily') {
+                const todayStr = Utils.getTodayString();
+                if (localStorage.getItem("daily_score_" + todayStr)) {
+                    AppController.showScreen('menu');
+                    return;
+                }
+            }
+
             if (savedScreen === 'origin') OriginGame.initialize();
             else if (savedScreen === 'rush') RushGame.initialize();
             else if (savedScreen === 'survival') SurvivalGame.initialize();
             else if (savedScreen === 'daily') DailyGame.initialize();
-            else if (savedScreen === 'anotherworld') AnotherGame.init();
+            else if (savedScreen === 'anotherworld') AnotherGame.initialize(); // ★修正: init -> initialize
             AppController.showScreen(savedScreen);
         } else { 
             AppController.showScreen('menu'); 
