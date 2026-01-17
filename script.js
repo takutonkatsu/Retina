@@ -72,7 +72,14 @@ const AppController = {
     },
 
     startGameMode: function(mode) {
+        // ★追加: GA4 イベント計測 (モード開始)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'level_start', {
+                'level_name': mode
+            });
+        }
         if(mode === 'versus') {
+            
             this.showScreen('versus-menu');
             const savedName = localStorage.getItem("friend_name");
             if(savedName) document.getElementById('versus-name-input').value = savedName;
@@ -263,6 +270,14 @@ const OriginGame = {
         this.displayResult(score, q, {r,g,b}); this.updateHistoryLog();
     },
     displayResult: function(score, q, input) {
+        // ★追加: GA4 イベント計測 (Origin結果)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'level_end', {
+                'level_name': 'origin',
+                'score': score
+            });
+        }
+
         AppController.showScreen('result-origin'); 
         document.getElementById('origin-score').innerText = score + "%";
         document.getElementById('origin-ans-color').style.backgroundColor = q.hex; document.getElementById('origin-ans-text').innerText = `${q.r},${q.g},${q.b}`;
@@ -339,6 +354,14 @@ const OriginGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
 
         canvas.toBlob(blob => {
+            // ★追加: GA4 イベント計測 (シェア)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'origin_result' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                });
+            }
+
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ files: [file], title: 'Retina Result', text: `Retina - Origin Mode #${count} | Score: ${score}` }).catch(console.error);
@@ -419,6 +442,16 @@ const RushGame = {
     },
     endGame: function() {
         this.isPlaying = false; clearInterval(this.timerInterval);
+
+        // ★追加: GA4 イベント計測 (Rush結果)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'level_end', {
+                'level_name': 'rush',
+                'score': Math.floor(this.score),
+                'max_combo': this.combo
+            });
+        }
+
         AppController.showScreen('result-rush');
         const finalScore = Math.floor(this.score);
         document.getElementById('rush-final-score').innerText = finalScore;
@@ -478,12 +511,32 @@ const SurvivalGame = {
             if(this.currentStage > maxStage) { localStorage.setItem("4stage_record", this.currentStage); }
             this.currentStage++; localStorage.setItem("4stage_number", this.currentStage); localStorage.removeItem("4RGB_Temporary_Hex");
         } else {
+            // ★追加: GA4 イベント計測 (Survival失敗)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'level_end', {
+                    'level_name': 'survival',
+                    'success': false,
+                    'stage': this.currentStage // 到達ステージ
+                });
+            }
             this.els.nextBtn.innerHTML = '<span class="btn-icon">↻</span> RESTART';
             this.els.nextBtn.onclick = () => this.restartGame();
         }
         this.updateHistoryLog();
     },
-    advanceStage: function() { if(this.currentStage > 25) { AppController.alert("ALL CLEAR! CONGRATULATIONS!", ()=>this.clearSaveData()); return; } this.prepareStage(); AppController.showScreen('survival'); },
+    advanceStage: function() { 
+        if(this.currentStage > 25) { 
+            // ★追加: GA4 イベント計測 (Survival全クリア)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'level_end', {
+                    'level_name': 'survival',
+                    'success': true,
+                    'stage': 25
+                });
+            }
+        AppController.alert("ALL CLEAR! CONGRATULATIONS!", ()=>this.clearSaveData()); 
+        return; 
+    } this.prepareStage(); AppController.showScreen('survival'); },
     restartGame: function() {
         for(let i=1; i<=26; i++) { localStorage.removeItem("4stage_number"+i); localStorage.removeItem("4answer_rgb16_"+i); localStorage.removeItem("4input_rgb16_"+i); localStorage.removeItem("4answer_rgb_"+i); localStorage.removeItem("4input_rgb_"+i); }
         localStorage.setItem("4stage_number", 1); localStorage.removeItem("4RGB_Temporary_Hex"); this.currentStage = 1; this.prepareStage(); this.updateHistoryLog(); AppController.showScreen('survival');
@@ -640,6 +693,13 @@ const AnotherGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
 
         canvas.toBlob(blob => {
+            // ★追加: GA4 イベント計測 (シェア)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'color_storage_all' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                });
+            }
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ files: [file], title: 'Retina Saved Color' }).catch(console.error);
@@ -704,6 +764,13 @@ const AnotherGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina", 600, height - 30); // 修正: URL
 
         canvas.toBlob(blob => {
+            // ★追加: GA4 イベント計測 (シェア)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'color_storage_single' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                });
+            }
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ files: [file], title: 'Retina Color Storage' }).catch(console.error);
@@ -762,6 +829,15 @@ const DailyGame = {
     },
 
     displayResult: function(score, target, inputHex) {
+
+        // ★追加: GA4 イベント計測 (Daily結果)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'level_end', {
+                'level_name': 'daily',
+                'score': score
+            });
+        }
+
         if(this.timerInterval) clearInterval(this.timerInterval);
         AppController.showScreen('result-daily');
         document.getElementById('daily-res-date').innerText = Utils.getFormattedDate();
@@ -828,6 +904,13 @@ const DailyGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
 
         canvas.toBlob(blob => {
+            // ★追加: GA4 イベント計測 (シェア)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'daily_result' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                });
+            }
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ files: [file], title: 'Retina Daily Result', text: `Retina - Daily Color Challenge ${dateText} | Score: ${score}` }).catch(console.error);
@@ -888,6 +971,13 @@ const VersusGame = {
     },
 
     setupNewRoom: function(maxWins) {
+        // ★追加: GA4 イベント計測 (部屋作成)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'level_start', {
+                'level_name': 'versus_create'
+            });
+        }
+
         this.roomRef.set({
             state: 'waiting', question: Utils.generateRandomColor(), round: 1, maxWins: maxWins, 
             players: {
@@ -967,6 +1057,13 @@ const VersusGame = {
                     return;
                 }
                 
+                // ★追加: GA4 イベント計測 (部屋参加)
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'join_group', {
+                        'group_id': this.roomId
+                    });
+                }
+
                 this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting', id: this.myId });
                 this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
                 this.listenToRoom();
@@ -1412,6 +1509,11 @@ const Tutorial = {
     currentStage: 0,
 
     start: function() {
+        // ★追加: GA4 イベント計測 (チュートリアル開始)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'tutorial_begin');
+        }
+
         this.overlay.classList.remove('hidden');
         // ★追加: リプレイ時に透明度をリセット
         this.overlay.style.opacity = '1';
@@ -1529,6 +1631,10 @@ const Tutorial = {
     },
 
     showFinale: function() {
+        // ★追加: GA4 イベント計測 (チュートリアル完了)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'tutorial_complete');
+        }
         this.phase2.classList.add('hidden');
         this.phase3.classList.remove('hidden');
         setTimeout(() => { this.skip(); }, 2500);
