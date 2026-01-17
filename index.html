@@ -328,7 +328,7 @@
             </div>
             <div class="setting-area">
                 <label style="color:#aaa; font-size:0.8rem; display:block; margin-bottom:5px;">GOAL (Wins)</label>
-                <input type="number" id="versus-goal-input" class="name-input" placeholder="5" value="5" min="0" style="width:100px; font-size:1.5rem; border-color:var(--primary-multi);">
+                <input type="number" id="versus-goal-input" class="name-input" placeholder="5" value="5" min="0" max="99" style="width:100px; font-size:1.5rem; border-color:var(--primary-multi);">
                 <p style="color:#666; font-size:0.7rem; margin-top:5px;">Enter "0" for Endless Mode</p>
             </div>
             <div class="menu-grid">
@@ -406,7 +406,7 @@
 
             <div class="modal-buttons">
                 <button id="versus-continue-btn" onclick="VersusGame.voteContinue()" class="btn-primary"><span class="btn-icon">▶</span> CONTINUE</button>
-                <button onclick="VersusGame.confirmExit()" class="btn-text">Exit Room</button>
+                <button id="versus-exit-btn" onclick="VersusGame.confirmExit()" class="btn-text">Exit Room</button>
             </div>
             <p id="versus-continue-status" style="color:#888; font-size:0.8rem; margin-top:-10px; min-height:1.2em;"></p>
         </section>

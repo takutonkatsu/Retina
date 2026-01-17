@@ -757,38 +757,70 @@ const DailyGame = {
     }
 };
 
-// ▼ VERSUS MODE (Unified 2-4 Players)
+
+// ▼ Utils (Add ID generator)
+Utils.generateId = function() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+// ▼ VERSUS MODE (Unified 2-4 Players) - Fixed Logic
 const VersusGame = {
     roomId: null, role: null, roomRef: null,
     myName: "Player", currentRound: 0, inviteRoomId: null,
     resultData: null, 
     cachedPlayers: {}, 
+    myId: null,
 
+    // ★修正: ID重複チェックを行いながら部屋を作成
     createRoom: function() {
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
+        
         let maxWins = parseInt(document.getElementById('versus-goal-input').value);
         if (isNaN(maxWins) || maxWins < 0) maxWins = 5;
+        if (maxWins > 99) maxWins = 99;
 
         localStorage.setItem("friend_name", name);
-        this.myName = name; this.role = 'p1'; 
+        this.myName = name; 
+        this.role = 'p1';
+        this.myId = Utils.generateId();
         this.currentRound = 0;
         this.resultData = null; 
         this.cachedPlayers = {}; 
-        this.roomId = Math.floor(1000 + Math.random() * 9000).toString();
-        this.roomRef = db.ref('rooms_versus/' + this.roomId);
         
+        this.tryCreateUniqueRoom(maxWins);
+    },
+
+    tryCreateUniqueRoom: function(maxWins) {
+        const tempId = Math.floor(1000 + Math.random() * 9000).toString();
+        db.ref('rooms_versus/' + tempId).once('value').then(snapshot => {
+            if (snapshot.exists()) {
+                // ID conflict, retry
+                this.tryCreateUniqueRoom(maxWins);
+            } else {
+                // Available
+                this.roomId = tempId;
+                this.roomRef = db.ref('rooms_versus/' + this.roomId);
+                this.setupNewRoom(maxWins);
+            }
+        });
+    },
+
+    setupNewRoom: function(maxWins) {
         this.roomRef.set({
             state: 'waiting', question: Utils.generateRandomColor(), round: 1, maxWins: maxWins, 
             players: {
-                p1: { name: this.myName, score: 0, status: 'waiting' },
+                p1: { name: this.myName, score: 0, status: 'waiting', id: this.myId },
                 p2: { name: '', score: 0, status: 'empty' },
                 p3: { name: '', score: 0, status: 'empty' },
                 p4: { name: '', score: 0, status: 'empty' }
             },
             winner: null
         });
-        this.roomRef.onDisconnect().remove();
+        
+        // 自身の切断時処理
+        this.roomRef.child('players/p1').onDisconnect().update({ name: '', score: 0, status: 'empty' });
+        
         this.listenToRoom();
         document.getElementById('versus-room-id-display').innerText = this.roomId;
         AppController.showScreen('versus-lobby');
@@ -819,6 +851,7 @@ const VersusGame = {
         this.currentRound = 0;
         this.resultData = null; 
         this.cachedPlayers = {}; 
+        this.myId = Utils.generateId();
 
         AppController.showScreen('versus-lobby');
         document.getElementById('versus-room-id-display').innerText = this.roomId;
@@ -827,6 +860,23 @@ const VersusGame = {
         this.roomRef.once('value').then(snapshot => {
             if(snapshot.exists()) {
                 const data = snapshot.val();
+
+                // ★修正: 全員退出済み(Zombie Room)のチェック
+                const activeCount = Object.values(data.players).filter(p => p.status !== 'empty').length;
+                if (activeCount === 0) {
+                    // 部屋はあるが誰もいない -> 削除してエラー
+                    this.roomRef.remove();
+                    AppController.alert("Room expired.", () => { AppController.showScreen('versus-menu'); });
+                    joinBtn.disabled = false;
+                    return;
+                }
+                
+                if (data.state !== 'waiting') {
+                    AppController.alert("Game already started!", () => { AppController.showScreen('versus-join'); });
+                    joinBtn.disabled = false;
+                    return;
+                }
+
                 if (data.players.p2.status === 'empty') this.role = 'p2';
                 else if (data.players.p3.status === 'empty') this.role = 'p3';
                 else if (data.players.p4.status === 'empty') this.role = 'p4';
@@ -835,7 +885,8 @@ const VersusGame = {
                     joinBtn.disabled = false;
                     return;
                 }
-                this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting' });
+                
+                this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting', id: this.myId });
                 this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
                 this.listenToRoom();
                 joinBtn.disabled = false;
@@ -854,7 +905,20 @@ const VersusGame = {
             const data = snapshot.val();
             if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
-            // ★ キャッシュ更新
+            // 自分のロールの再確認 (繰り上がり対応)
+            if (data.players) {
+                const mySlot = Object.keys(data.players).find(k => data.players[k].id === this.myId);
+                if (mySlot && mySlot !== this.role) {
+                    // 古いリスナーを解除
+                    this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
+                    
+                    this.role = mySlot;
+                    
+                    // 新しいリスナーを設定
+                    this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
+                }
+            }
+
             if (data.players) {
                 Object.keys(data.players).forEach(key => {
                     const p = data.players[key];
@@ -863,10 +927,44 @@ const VersusGame = {
                     }
                 });
             }
+            
+            // ★修正: ロビーでのプレイヤー整理（繰り上げ）ロジック
+            const activeKeys = Object.keys(data.players).filter(k => data.players[k].status !== 'empty');
+            const leaderKey = activeKeys[0]; 
+            
+            if (data.state === 'waiting' && this.role === leaderKey) {
+                const correctOrderKeys = ['p1', 'p2', 'p3', 'p4'];
+                let needsUpdate = false;
+                let updates = {};
 
-            // ★ 決着時のデータ固定
+                const currentActivePlayers = correctOrderKeys
+                    .map(k => data.players[k])
+                    .filter(p => p.status !== 'empty');
+
+                correctOrderKeys.forEach((key, index) => {
+                    if (index < currentActivePlayers.length) {
+                        const shouldBeHere = currentActivePlayers[index];
+                        if (data.players[key].id !== shouldBeHere.id) {
+                            updates[`players/${key}`] = shouldBeHere;
+                            needsUpdate = true;
+                        }
+                    } else {
+                        if (data.players[key].status !== 'empty') {
+                            updates[`players/${key}`] = { name: '', score: 0, status: 'empty' };
+                            needsUpdate = true;
+                        }
+                    }
+                });
+
+                if (needsUpdate) {
+                    this.roomRef.update(updates);
+                    return; 
+                }
+            }
+
             if (data.state === 'finished') {
-                if (this.role) { this.roomRef.child(`players/${this.role}`).onDisconnect().cancel(); }
+                // ★修正: onDisconnectをキャンセルしない（退出時にemptyになるようにする）
+                
                 if (!this.resultData) {
                     let finalData = JSON.parse(JSON.stringify(data));
                     Object.keys(this.cachedPlayers).forEach(key => {
@@ -876,20 +974,13 @@ const VersusGame = {
                     });
                     this.resultData = finalData;
                 }
-                this.showResult(this.resultData, data); // Pass fixed AND live data
+                this.showResult(this.resultData, data); 
                 return;
             } else {
                 this.resultData = null;
             }
 
-            let activeCount = 0;
-            let activeKeys = [];
-            ['p1', 'p2', 'p3', 'p4'].forEach(key => {
-                if (data.players[key].status !== 'empty') {
-                    activeCount++;
-                    activeKeys.push(key);
-                }
-            });
+            let activeCount = activeKeys.length;
 
             const goal = data.maxWins || 5;
             const isGameSet = Object.values(data.players).some(p => p.score >= goal && p.status !== 'empty');
@@ -909,7 +1000,9 @@ const VersusGame = {
             ['p1', 'p2', 'p3', 'p4'].forEach((key, i) => {
                 const el = document.getElementById(`versus-${key}-name`);
                 const p = data.players[key];
-                let label = (i === 0) ? "Host" : `Guest ${i}`;
+                let label = (key === 'p1') ? "Host" : `Guest ${parseInt(key.charAt(1)) - 1}`;
+                if (key === 'p1') label = "Host";
+                
                 if (p.status !== 'empty') {
                     el.innerText = `${label}: ${p.name}`;
                     el.style.color = "#fff";
@@ -952,14 +1045,16 @@ const VersusGame = {
                     statusEl.style.color = "var(--primary-multi)";
                 }
 
-                if (this.role === 'p1' && waitingCount === 0) {
+                if (this.role === leaderKey && waitingCount === 0) {
                     this.calcResult(data);
                 }
             }
         });
     },
 
-    hostStartGame: function() { this.roomRef.update({ state: 'playing' }); },
+    hostStartGame: function() { 
+        this.roomRef.update({ state: 'playing' }); 
+    },
 
     startRound: function(data) {
         if (this.currentRound === data.round && document.getElementById('screen-versus-battle').classList.contains('active')) return;
@@ -1047,19 +1142,39 @@ const VersusGame = {
     },
 
     confirmExit: function() { AppController.confirm("Exit Multiplayer?", (y) => { if(y) this.exitRoom(); }); },
-    exitRoom: function(isPassive) { if(this.roomRef && !isPassive) { this.roomRef.off(); if (this.role) { this.roomRef.child(`players/${this.role}`).update({ name: '', score: 0, status: 'empty' }); } } this.roomId = null; AppController.showScreen('menu'); },
+    exitRoom: function(isPassive) { 
+        if(this.roomRef && !isPassive) { 
+            this.roomRef.off(); 
+            if (this.role) { 
+                this.roomRef.child(`players/${this.role}`).update({ name: '', score: 0, status: 'empty' }); 
+            } 
+        } 
+        this.roomId = null; 
+        AppController.showScreen('menu'); 
+    },
 
     showResult: function(data, liveData) { 
         if(!document.getElementById('screen-versus-result').classList.contains('active')) { AppController.showScreen('versus-result'); }
         
-        const logicData = liveData || data; // logicData is used for state check, data is used for rendering
+        const logicData = liveData || data; 
         const q = data.question; 
         const myKey = this.role;
+        const goal = data.maxWins || 5;
+
+        // ★修正: 決着がついたか判定（固定データから）
+        const isGameSet = Object.values(data.players).some(p => p.score >= goal);
         
         let activePlayers = [];
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
+            const liveP = logicData.players ? logicData.players[key] : null;
+
             if (p.name) {
+                // ★修正: 決着前(!isGameSet)で、かつ現在いない(livePがempty)なら表示しない
+                if (!isGameSet && (!liveP || liveP.status === 'empty')) {
+                    return;
+                }
+
                 activePlayers.push({ 
                     key: key, 
                     name: p.name, 
@@ -1099,13 +1214,13 @@ const VersusGame = {
             else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#fff"; }
         }
 
-        const goal = data.maxWins || 5;
         document.getElementById('versus-goal-val').innerText = (goal > 0) ? goal : "∞";
         document.getElementById('versus-ans-color').style.backgroundColor = q.hex; 
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-        if (activePlayers.length === 4) { playersCompContainer.className = "multi-players-wrapper grid-2x2"; } else { playersCompContainer.className = "multi-players-wrapper flex-row"; }
+        playersCompContainer.className = "multi-players-wrapper flex-row"; 
+
         let compareHtml = ''; 
         let sortedByKey = [...activePlayers].sort((a, b) => a.key.localeCompare(b.key));
         sortedByKey.forEach(p => { 
@@ -1124,6 +1239,7 @@ const VersusGame = {
 
         const winDeclare = document.getElementById('versus-final-winner');
         const btn = document.getElementById('versus-continue-btn'); 
+        const exitBtn = document.getElementById('versus-exit-btn');
         const contMsg = document.getElementById('versus-continue-status');
 
         if (champions.length > 0) {
@@ -1137,13 +1253,17 @@ const VersusGame = {
             btn.style.background = "var(--primary-multi)";
             btn.onclick = () => this.confirmExit();
             
+            if(exitBtn) exitBtn.classList.add('hidden');
+            
             contMsg.innerText = "Thanks for playing!";
         } else {
             winDeclare.classList.add('hidden'); 
+            if(exitBtn) exitBtn.classList.remove('hidden');
+
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
             btn.onclick = () => this.voteContinue();
 
-            // Check MY live status from logicData (current state)
+            // Check MY live status from logicData
             if (logicData.players[this.role].status === 'ready') { 
                 btn.disabled = true; 
                 btn.innerText = "WAITING..."; 
@@ -1157,7 +1277,7 @@ const VersusGame = {
             }
             
             let readyCount = 0; 
-            // Count players who are currently in the room (not empty)
+            // ★修正: 待機人数の分母を現在いる人数(emptyでない)に基づいて計算
             let currentRoomMembers = 0;
              Object.keys(logicData.players).forEach(key => {
                 if (logicData.players[key].status !== 'empty') {
@@ -1169,7 +1289,8 @@ const VersusGame = {
             if(readyCount === currentRoomMembers && currentRoomMembers > 0) contMsg.innerText = "Starting next round..."; 
             else contMsg.innerText = `Waiting for players (${readyCount}/${currentRoomMembers} ready)...`;
             
-            if (this.role === 'p1' && readyCount === currentRoomMembers && currentRoomMembers > 0) { 
+            const leaderKey = Object.keys(logicData.players).find(k => logicData.players[k].status !== 'empty');
+            if (this.role === leaderKey && readyCount === currentRoomMembers && currentRoomMembers > 0) { 
                 this.nextRound(logicData.round + 1); 
             }
         }
@@ -1178,7 +1299,10 @@ const VersusGame = {
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
 
-
+document.getElementById('versus-goal-input').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (parseInt(this.value) > 99) this.value = 99;
+});
 
 // ★修正: 究極のチュートリアル (リプレイ修正版)
 const Tutorial = {

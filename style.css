@@ -288,8 +288,10 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .res-grid-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 15px; width: 100%; }
 .res-grid-box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; position: relative; border: 1px solid rgba(255,255,255,0.1); width: 45%; max-width: 130px; }
 .res-grid-container.players-3 .res-grid-box { width: 32%; max-width: none; }
-.res-grid-rank { font-size: 1.1rem; font-weight: 900; font-style: italic; margin-bottom: 2px; }
-.rank-1st { color: var(--accent-gold); font-size: 1.4rem; }
+/* Versus Rank Fonts (Simplified) */
+.res-grid-rank { font-size: 1.2rem; font-weight: 900; font-style: italic; margin-bottom: 2px; }
+/* 修正: 1stなどのサイズオーバーライドを削除し、統一サイズに */
+.rank-1st { color: var(--accent-gold); }
 .rank-2nd { color: #c0c0c0; }
 .rank-3rd { color: #cd7f32; }
 .res-grid-score { font-size: 1.3rem; font-family: var(--font-mono); font-weight: bold; margin: 4px 0; color: #fff; }
