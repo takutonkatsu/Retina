@@ -377,11 +377,12 @@ const OriginGame = {
 
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★ハッシュタグ追加
+                // ★修正: Ao5改行 & 個人開発削除
+                const ao5Str = (currentAo5 === "--") ? "Ao5: --" : `Ao5: ${currentAo5}%`;
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Result', 
-                    text: `Retina - Origin Mode #${count} | Score: ${score} #Retina #色彩感覚 #RGB #個人開発` 
+                    text: `Retina - Origin Mode #${count}\nScore: ${score}\n${ao5Str}\n\n#Retina #色彩感覚 #RGB`
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_origin_${count}.png`; link.href = canvas.toDataURL(); link.click();
@@ -667,7 +668,7 @@ const AnotherGame = {
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125); // 修正: Retina
+        ctx.fillText("Retina", 180, 125); 
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
@@ -677,7 +678,6 @@ const AnotherGame = {
         ctx.textAlign = 'right'; 
         ctx.fillText(date, 1140, 240);
 
-        // 円と文字の位置調整
         const centerX = 600;
         const centerY = 480; 
         ctx.save();
@@ -696,7 +696,6 @@ const AnotherGame = {
         ctx.textAlign = 'center'; 
         ctx.fillText(rgbClean, centerX, centerY + 250); 
 
-        // Footer URL
         ctx.font = '24px sans-serif'; 
         ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
         ctx.textAlign = 'center'; 
@@ -711,11 +710,11 @@ const AnotherGame = {
             }
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★ハッシュタグ追加
+                // ★修正: Saved Color & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Saved Color',
-                    text: `#Retina #色彩感覚 #RGB #個人開発`
+                    text: `Retina - Color Storage\nSaved Color: ${hex}\n\n#Retina #色彩感覚 #RGB`
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); 
@@ -774,7 +773,6 @@ const AnotherGame = {
         }
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        // ★修正: URL末尾に / を追加
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, height - 30); 
 
         canvas.toBlob(blob => {
@@ -786,11 +784,11 @@ const AnotherGame = {
             }
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★ハッシュタグ追加
+                // ★修正: Collection & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Color Storage',
-                    text: `#Retina #色彩感覚 #RGB #個人開発`
+                    text: `Retina - Color Storage\nMy Color Collection\n\n#Retina #色彩感覚 #RGB`
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_storage.png`; link.href = canvas.toDataURL(); link.click();
@@ -901,18 +899,16 @@ const DailyGame = {
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125); 
         
-        // ★変更箇所：DAILY COLOR (右寄せ)
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; 
         ctx.textAlign = 'right';
         ctx.fillText("DAILY COLOR", 1140, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // ★変更箇所：日付を大きく、明るく
-        ctx.font = '700 48px "JetBrains Mono", monospace'; // 32 -> 48
-        ctx.fillStyle = '#eee'; // aaa -> eee
+        ctx.font = '700 48px "JetBrains Mono", monospace'; 
+        ctx.fillStyle = '#eee'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText(dateText, 600, 260); // y座標を少し下げる
+        ctx.fillText(dateText, 600, 260); 
 
         ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
         
@@ -925,7 +921,6 @@ const DailyGame = {
         drawColor(800, 620, savedInputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        // ★修正: URL末尾に / を追加
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
@@ -937,11 +932,11 @@ const DailyGame = {
             }
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★ハッシュタグ追加
+                // ★修正: 日付付きタイトル & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Daily Result', 
-                    text: `Retina - Daily Color Challenge ${dateText} | Score: ${score} #Retina #色彩感覚 #RGB #個人開発` 
+                    text: `Retina - Daily Color ${dateText}\nScore: ${score}\n\n#Retina #色彩感覚 #RGB` 
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_daily_${dateText}.png`; link.href = canvas.toDataURL(); link.click();
@@ -964,7 +959,6 @@ const VersusGame = {
     cachedPlayers: {}, 
     myId: null,
 
-    // ★修正: ID重複チェックを行いながら部屋を作成
     createRoom: function() {
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
@@ -1000,7 +994,6 @@ const VersusGame = {
     },
 
     setupNewRoom: function(maxWins) {
-        // ★追加: GA4 イベント計測 (部屋作成)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_start', {
                 'level_name': 'versus_create'
@@ -1018,7 +1011,6 @@ const VersusGame = {
             winner: null
         });
         
-        // 自身の切断時処理
         this.roomRef.child('players/p1').onDisconnect().update({ name: '', score: 0, status: 'empty' });
         
         this.listenToRoom();
@@ -1061,10 +1053,8 @@ const VersusGame = {
             if(snapshot.exists()) {
                 const data = snapshot.val();
 
-                // ★修正: 全員退出済み(Zombie Room)のチェック
                 const activeCount = Object.values(data.players).filter(p => p.status !== 'empty').length;
                 if (activeCount === 0) {
-                    // 部屋はあるが誰もいない -> 削除してエラー
                     this.roomRef.remove();
                     AppController.alert("Room expired.", () => { AppController.showScreen('versus-menu'); });
                     joinBtn.disabled = false;
@@ -1086,7 +1076,6 @@ const VersusGame = {
                     return;
                 }
                 
-                // ★追加: GA4 イベント計測 (部屋参加)
                 if (typeof gtag !== 'undefined') {
                     gtag('event', 'join_group', {
                         'group_id': this.roomId
@@ -1112,16 +1101,13 @@ const VersusGame = {
             const data = snapshot.val();
             if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
-            // 自分のロールの再確認 (繰り上がり対応)
             if (data.players) {
                 const mySlot = Object.keys(data.players).find(k => data.players[k].id === this.myId);
                 if (mySlot && mySlot !== this.role) {
-                    // 古いリスナーを解除
                     this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
                     
                     this.role = mySlot;
                     
-                    // 新しいリスナーを設定
                     this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
                 }
             }
@@ -1135,7 +1121,6 @@ const VersusGame = {
                 });
             }
             
-            // ★修正: ロビーでのプレイヤー整理（繰り上げ）ロジック
             const activeKeys = Object.keys(data.players).filter(k => data.players[k].status !== 'empty');
             const leaderKey = activeKeys[0]; 
             
@@ -1170,8 +1155,6 @@ const VersusGame = {
             }
 
             if (data.state === 'finished') {
-                // ★修正: onDisconnectをキャンセルしない！
-                // これによりリザルト画面でのタスクキルも検知され、statusがemptyになります。
                 
                 if (!this.resultData) {
                     let finalData = JSON.parse(JSON.stringify(data));
@@ -1344,7 +1327,6 @@ const VersusGame = {
         }); 
     },
 
-    // ★修正: メッセージを「Exit Room?」に変更
     confirmExit: function() { AppController.confirm("Exit Room?", (y) => { if(y) this.exitRoom(); }); },
     exitRoom: function(isPassive) { 
         if(this.roomRef && !isPassive) { 
@@ -1365,7 +1347,6 @@ const VersusGame = {
         const myKey = this.role;
         const goal = data.maxWins || 5;
 
-        // ★修正: 決着がついたか判定（固定データから）
         const isGameSet = Object.values(data.players).some(p => p.score >= goal);
         
         let activePlayers = [];
@@ -1374,7 +1355,6 @@ const VersusGame = {
             const liveP = logicData.players ? logicData.players[key] : null;
 
             if (p.name) {
-                // ★修正: 決着前(!isGameSet)で、かつ現在いない(livePがempty)なら表示しない
                 if (!isGameSet && (!liveP || liveP.status === 'empty')) {
                     return;
                 }
@@ -1454,10 +1434,8 @@ const VersusGame = {
             
             btn.innerHTML = 'RETURN TO MENU';
             btn.disabled = false;
-            // ★修正: デザイン変更 (.btn-returnクラス適用)
             btn.className = "btn-primary btn-return";
-            btn.style.background = ""; // Reset inline style
-            // ★修正: アラートなしで即終了
+            btn.style.background = ""; 
             btn.onclick = () => this.exitRoom();
             
             if(exitBtn) exitBtn.classList.add('hidden');
@@ -1468,11 +1446,10 @@ const VersusGame = {
             if(exitBtn) exitBtn.classList.remove('hidden');
 
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
-            btn.className = "btn-primary"; // Reset class
+            btn.className = "btn-primary"; 
             btn.style.background = "";
             btn.onclick = () => this.voteContinue();
 
-            // Check MY live status from logicData
             if (logicData.players[this.role].status === 'ready') { 
                 btn.disabled = true; 
                 btn.innerText = "WAITING..."; 
@@ -1486,7 +1463,6 @@ const VersusGame = {
             }
             
             let readyCount = 0; 
-            // ★修正: 待機人数の分母を現在いる人数(emptyでない)に基づいて計算
             let currentRoomMembers = 0;
              Object.keys(logicData.players).forEach(key => {
                 if (logicData.players[key].status !== 'empty') {
@@ -1513,21 +1489,17 @@ document.getElementById('versus-goal-input').addEventListener('input', function(
     if (parseInt(this.value) > 99) this.value = 99;
 });
 
-// ★修正: 究極のチュートリアル (リプレイ修正版)
+// ★修正: 究極のチュートリアル
 const Tutorial = {
     overlay: document.getElementById('tutorial-overlay'),
     phase1: document.getElementById('tut-phase-1'),
     phase2: document.getElementById('tut-phase-2'),
     phase3: document.getElementById('tut-phase-3'),
     
-    // Phase 1 Elements (Msg 1 removed from here)
-    
-    // Phase 2 Elements
     targetBox: document.getElementById('tut-target-box'),
     userBox: document.getElementById('tut-user-box'),
     guideText: document.getElementById('tut-guide-text'),
     
-    // Sliders
     rangeR: document.getElementById('tut-range-r'),
     rangeG: document.getElementById('tut-range-g'),
     rangeB: document.getElementById('tut-range-b'),
@@ -1538,23 +1510,19 @@ const Tutorial = {
     currentStage: 0,
 
     start: function() {
-        // ★追加: GA4 イベント計測 (チュートリアル開始)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'tutorial_begin');
         }
 
         this.overlay.classList.remove('hidden');
-        // ★追加: リプレイ時に透明度をリセット
         this.overlay.style.opacity = '1';
         
         this.phase1.classList.remove('hidden');
-        // ★追加: リプレイ時に透明度をリセット
         this.phase1.style.opacity = '1';
         
         this.phase2.classList.add('hidden');
         this.phase3.classList.add('hidden');
 
-        // Animation: Logo FadeIn -> Wait -> FadeOut -> Phase2
         setTimeout(() => {
             this.phase1.style.opacity = '0';
             this.phase1.style.transition = 'opacity 0.5s';
@@ -1631,7 +1599,6 @@ const Tutorial = {
         };
     },
 
-    // --- Helper Functions ---
     setTargetColor: function(r, g, b) {
         this.targetBox.style.backgroundColor = `rgb(${r},${g},${b})`;
     },
@@ -1660,7 +1627,6 @@ const Tutorial = {
     },
 
     showFinale: function() {
-        // ★追加: GA4 イベント計測 (チュートリアル完了)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'tutorial_complete');
         }
@@ -1677,7 +1643,6 @@ window.onload = function() {
     
     MenuLogic.init();
 
-    // ★修正: チュートリアル実行判定 (初回のみ)
     if (!localStorage.getItem('visited')) { 
         Tutorial.start(); 
     }
