@@ -377,7 +377,6 @@ const OriginGame = {
 
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★修正: Ao5改行 & 個人開発削除
                 const ao5Str = (currentAo5 === "--") ? "Ao5: --" : `Ao5: ${currentAo5}%`;
                 navigator.share({ 
                     files: [file], 
@@ -691,7 +690,8 @@ const AnotherGame = {
         ctx.stroke(); 
         ctx.restore();
 
-        const rgbClean = rgbTxt.replace(/[()]/g, ''); 
+        // ★修正箇所: カンマの後にスペースを追加
+        const rgbClean = rgbTxt.replace(/[()]/g, '').replace(/,/g, ', '); 
         ctx.font = '900 60px "Inter", sans-serif'; 
         ctx.fillStyle = '#ffffff'; 
         ctx.textAlign = 'center'; 
@@ -711,7 +711,6 @@ const AnotherGame = {
             }
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★修正: Saved Color & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Saved Color',
@@ -785,7 +784,6 @@ const AnotherGame = {
             }
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★修正: Collection & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Color Storage',
@@ -933,7 +931,6 @@ const DailyGame = {
             }
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // ★修正: 日付付きタイトル & ハッシュタグ
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Daily Result', 
