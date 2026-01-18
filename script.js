@@ -391,6 +391,7 @@ const OriginGame = {
     }
 };
 
+
 // Rush Mode (Updated)
 const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,

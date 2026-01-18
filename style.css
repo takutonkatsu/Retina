@@ -160,6 +160,7 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .policy-content::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 .policy-content::-webkit-scrollbar-track { background: transparent; }
 
+
 /* Game UI */
 .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .game-title { margin: 0; font-size: 1.3rem; letter-spacing: -1px; padding-left: 12px; border-left: 4px solid transparent; line-height: 1.1; }
