@@ -13,8 +13,6 @@ const db = firebase.database();
 
 // ▼ App Controller
 const AppController = {
-    // secretCount, secretTimer は不要になったので削除してOKですが、残しても害はありません。
-    
     alert: function(msg, callback) {
         document.getElementById('custom-alert-text').innerText = msg;
         const modal = document.getElementById('custom-alert-modal');
@@ -71,14 +69,12 @@ const AppController = {
         }
     },
 
-    // ★追加: ポリシーモーダル表示
     showPolicy: function() {
         const modal = document.getElementById('policy-modal');
         if (modal) modal.classList.remove('hidden');
     },
 
     startGameMode: function(mode) {
-        // ★追加: GA4 イベント計測 (モード開始)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_start', {
                 'level_name': mode
@@ -165,7 +161,6 @@ const Utils = {
     generateId: function() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     },
-    // ★追加: XSS対策用のエスケープ関数
     escapeHtml: function(str) {
         if (!str) return str;
         return str.replace(/[&<>"']/g, function(m) {
@@ -248,7 +243,6 @@ const MenuLogic = {
 
 // Origin Mode
 const OriginGame = {
-    // ... (initialize ~ clearSaveData は維持) ...
     questionColor: {},
     initialize: function() {
         this.els = { R: document.getElementById('origin-R'), G: document.getElementById('origin-G'), B: document.getElementById('origin-B'), valR: document.getElementById('origin-val-R'), valG: document.getElementById('origin-val-G'), valB: document.getElementById('origin-val-B'), qColor: document.getElementById('origin-question-color') };
@@ -292,7 +286,6 @@ const OriginGame = {
         this.displayResult(score, q, {r,g,b}); this.updateHistoryLog();
     },
     displayResult: function(score, q, input) {
-        // ★追加: GA4 イベント計測 (Origin結果)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_end', {
                 'level_name': 'origin',
@@ -325,7 +318,6 @@ const OriginGame = {
         AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
     },
     
-    // ★修正: ロゴ「Retina」 & URL変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -352,7 +344,7 @@ const OriginGame = {
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125); // 修正: Retina
+        ctx.fillText("Retina", 180, 125);
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff4757'; ctx.fillText("ORIGIN MODE", 900, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
@@ -373,11 +365,9 @@ const OriginGame = {
         drawColor(800, 620, inputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        // ★修正: URL末尾に / を追加
-        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770); 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
-            // ★追加: GA4 イベント計測 (シェア)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
@@ -387,7 +377,12 @@ const OriginGame = {
 
             const file = new File([blob], "retina_origin.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: 'Retina Result', text: `Retina - Origin Mode #${count} | Score: ${score}` }).catch(console.error);
+                // ★ハッシュタグ追加
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Result', 
+                    text: `Retina - Origin Mode #${count} | Score: ${score} #Retina #色彩感覚 #RGB #個人開発` 
+                }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_origin_${count}.png`; link.href = canvas.toDataURL(); link.click();
             }
@@ -395,7 +390,7 @@ const OriginGame = {
     }
 };
 
-// Rush Mode (Updated: Score Cap & End Game)
+// Rush Mode (Updated)
 const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,
     initialize: function() {
@@ -441,7 +436,6 @@ const RushGame = {
             this.combo++; this.score += (acc * 10) + (this.combo * 50); this.count++;
         }
         
-        // ★修正: スコア上限 99999999 + 強制終了
         if (this.score >= 99999999) {
             this.score = 99999999;
             this.endGame();
@@ -452,7 +446,6 @@ const RushGame = {
         this.triggerVisualEffect(timeDelta, isBad, acc.toFixed(2)+"%");
         if (this.timeLeft > 0) { this.setNextColor(); } else { this.endGame(); }
     },
-    // ... (triggerVisualEffect, endGame, clearSaveData are unchanged) ...
     triggerVisualEffect: function(delta, isBad, accStr) {
         const container = document.getElementById('rush-effect-container');
         const el = document.createElement('div'); el.className = 'time-popup';
@@ -466,7 +459,6 @@ const RushGame = {
     endGame: function() {
         this.isPlaying = false; clearInterval(this.timerInterval);
 
-        // ★追加: GA4 イベント計測 (Rush結果)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_end', {
                 'level_name': 'rush',
@@ -534,12 +526,11 @@ const SurvivalGame = {
             if(this.currentStage > maxStage) { localStorage.setItem("4stage_record", this.currentStage); }
             this.currentStage++; localStorage.setItem("4stage_number", this.currentStage); localStorage.removeItem("4RGB_Temporary_Hex");
         } else {
-            // ★追加: GA4 イベント計測 (Survival失敗)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'level_end', {
                     'level_name': 'survival',
                     'success': false,
-                    'stage': this.currentStage // 到達ステージ
+                    'stage': this.currentStage
                 });
             }
             this.els.nextBtn.innerHTML = '<span class="btn-icon">↻</span> RESTART';
@@ -549,7 +540,6 @@ const SurvivalGame = {
     },
     advanceStage: function() { 
         if(this.currentStage > 25) { 
-            // ★追加: GA4 イベント計測 (Survival全クリア)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'level_end', {
                     'level_name': 'survival',
@@ -657,7 +647,6 @@ const AnotherGame = {
         });
     },
     
-    // ★修正: 単体シェアのレイアウト (重なり防止、ロゴ修正)
     shareSingleItem: function(index) {
         const hex = localStorage.getItem("3input_rgb16" + index);
         const rgbTxt = localStorage.getItem("3input_rgb" + index);
@@ -689,7 +678,6 @@ const AnotherGame = {
         ctx.fillText(date, 1140, 240);
 
         // 円と文字の位置調整
-        // 円の中心Yを少し上にずらす (500 -> 480)
         const centerX = 600;
         const centerY = 480; 
         ctx.save();
@@ -702,31 +690,33 @@ const AnotherGame = {
         ctx.stroke(); 
         ctx.restore();
 
-        // RGB値のY座標を調整 (overlap回避)
         const rgbClean = rgbTxt.replace(/[()]/g, ''); 
         ctx.font = '900 60px "Inter", sans-serif'; 
         ctx.fillStyle = '#ffffff'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText(rgbClean, centerX, centerY + 250); // 730付近
+        ctx.fillText(rgbClean, centerX, centerY + 250); 
 
         // Footer URL
         ctx.font = '24px sans-serif'; 
         ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
         ctx.textAlign = 'center'; 
-        // ★修正: URL末尾に / を追加
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
-            // ★追加: GA4 イベント計測 (シェア)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'color_storage_single' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'color_storage_single'
                 });
             }
             const file = new File([blob], `retina_color_${index}.png`, { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: 'Retina Saved Color' }).catch(console.error);
+                // ★ハッシュタグ追加
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Saved Color',
+                    text: `#Retina #色彩感覚 #RGB #個人開発`
+                }).catch(console.error);
             } else {
                 const link = document.createElement('a'); 
                 link.download = `retina_color_${index}.png`; 
@@ -736,7 +726,6 @@ const AnotherGame = {
         });
     },
 
-    // ★修正: 全体シェア (ロゴ & URL)
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -763,7 +752,7 @@ const AnotherGame = {
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125); // 修正: Retina
+        ctx.fillText("Retina", 180, 125); 
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
@@ -789,16 +778,20 @@ const AnotherGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, height - 30); 
 
         canvas.toBlob(blob => {
-            // ★追加: GA4 イベント計測 (シェア)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'color_storage_all' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'color_storage_all' 
                 });
             }
             const file = new File([blob], "retina_storage.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: 'Retina Color Storage' }).catch(console.error);
+                // ★ハッシュタグ追加
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Color Storage',
+                    text: `#Retina #色彩感覚 #RGB #個人開発`
+                }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_storage.png`; link.href = canvas.toDataURL(); link.click();
             }
@@ -854,8 +847,6 @@ const DailyGame = {
     },
 
     displayResult: function(score, target, inputHex) {
-
-        // ★追加: GA4 イベント計測 (Daily結果)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_end', {
                 'level_name': 'daily',
@@ -890,7 +881,6 @@ const DailyGame = {
         this.timerInterval = setInterval(updateTimer, 1000);
     },
 
-    // ★修正: ロゴ「Retina」 & URL変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
@@ -911,14 +901,14 @@ const DailyGame = {
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125); 
         
-        // ★修正: DAILY CHALLENGE -> DAILY COLOR (右寄せ)
+        // ★変更箇所：DAILY COLOR (右寄せ)
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; 
         ctx.textAlign = 'right';
         ctx.fillText("DAILY COLOR", 1140, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // ★修正: 日付を大きく、明るく
+        // ★変更箇所：日付を大きく、明るく
         ctx.font = '700 48px "JetBrains Mono", monospace'; // 32 -> 48
         ctx.fillStyle = '#eee'; // aaa -> eee
         ctx.textAlign = 'center'; 
@@ -939,16 +929,20 @@ const DailyGame = {
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
-            // ★追加: GA4 イベント計測 (シェア)
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'daily_result' // 各モードに合わせて 'daily_result', 'storage_list' 等に変更
+                    'content_type': 'daily_result' 
                 });
             }
             const file = new File([blob], "retina_daily.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: 'Retina Daily Result', text: `Retina - Daily Color Challenge ${dateText} | Score: ${score}` }).catch(console.error);
+                // ★ハッシュタグ追加
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Daily Result', 
+                    text: `Retina - Daily Color Challenge ${dateText} | Score: ${score} #Retina #色彩感覚 #RGB #個人開発` 
+                }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_daily_${dateText}.png`; link.href = canvas.toDataURL(); link.click();
             }
