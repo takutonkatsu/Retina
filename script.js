@@ -373,7 +373,8 @@ const OriginGame = {
         drawColor(800, 620, inputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
+        // ★修正: URL末尾に / を追加
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770); 
 
         canvas.toBlob(blob => {
             // ★追加: GA4 イベント計測 (シェア)
@@ -712,7 +713,8 @@ const AnotherGame = {
         ctx.font = '24px sans-serif'; 
         ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770);
+        // ★修正: URL末尾に / を追加
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
             // ★追加: GA4 イベント計測 (シェア)
@@ -783,7 +785,8 @@ const AnotherGame = {
         }
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, height - 30); // 修正: URL
+        // ★修正: URL末尾に / を追加
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, height - 30); 
 
         canvas.toBlob(blob => {
             // ★追加: GA4 イベント計測 (シェア)
@@ -906,11 +909,20 @@ const DailyGame = {
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125); // 修正: Retina
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; ctx.fillText("DAILY CHALLENGE", 840, 125);
+        ctx.fillText("Retina", 180, 125); 
+        
+        // ★修正: DAILY CHALLENGE -> DAILY COLOR (右寄せ)
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; 
+        ctx.textAlign = 'right';
+        ctx.fillText("DAILY COLOR", 1140, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center'; ctx.fillText(dateText, 600, 240);
+        
+        // ★修正: 日付を大きく、明るく
+        ctx.font = '700 48px "JetBrains Mono", monospace'; // 32 -> 48
+        ctx.fillStyle = '#eee'; // aaa -> eee
+        ctx.textAlign = 'center'; 
+        ctx.fillText(dateText, 600, 260); // y座標を少し下げる
 
         ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
         
@@ -923,7 +935,8 @@ const DailyGame = {
         drawColor(800, 620, savedInputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina", 600, 770); // 修正: URL
+        // ★修正: URL末尾に / を追加
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
             // ★追加: GA4 イベント計測 (シェア)
