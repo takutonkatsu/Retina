@@ -126,6 +126,31 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* BMC Button Style */
+.bmc-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 221, 0, 0.15); /* BMCの黄色を薄くダークモード化 */
+    border: 1px solid rgba(255, 221, 0, 0.3);
+    color: #ffdd00; /* テキストは黄色 */
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.bmc-link:hover {
+    background: rgba(255, 221, 0, 0.3);
+    box-shadow: 0 0 10px rgba(255, 221, 0, 0.2);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
 /* ★追加: Policy Modal Specifics */
 .policy-box {
     max-width: 500px;
