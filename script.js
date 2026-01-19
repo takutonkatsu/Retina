@@ -802,7 +802,17 @@ const SurvivalGame = {
         const isClear = Number(score) >= Number(target);
         
         AppController.showScreen('result-survival');
-        const scoreText = document.getElementById('survival-score-text'); scoreText.innerText = isClear ? "Clear!" : "FAILED"; scoreText.style.color = isClear ? "var(--accent-green)" : "var(--accent-red)";
+        const scoreText = document.getElementById('survival-score-text'); 
+        
+        // ★修正: Clear時にステージ番号を表示
+        if (isClear) {
+            scoreText.innerHTML = `<span class="stage-label-small">STAGE ${this.currentStage}</span>Clear!`;
+            scoreText.style.color = "var(--accent-green)";
+        } else {
+            scoreText.innerHTML = "FAILED";
+            scoreText.style.color = "var(--accent-red)";
+        }
+
         document.getElementById('survival-result-score').innerText = score + "%"; document.getElementById('survival-result-goal').innerText = target + "%";
         document.getElementById('survival-ans-color').style.backgroundColor = q.hex; document.getElementById('survival-ans-text').innerText = `${q.r},${q.g},${q.b}`;
         document.getElementById('survival-your-color').style.backgroundColor = Utils.rgbToHex(r,g,b); document.getElementById('survival-your-text').innerText = `${r},${g},${b}`;
@@ -822,30 +832,29 @@ const SurvivalGame = {
             localStorage.setItem("4stage_number", this.currentStage); 
             localStorage.removeItem("4RGB_Temporary_Hex");
 
-            // ★変更: 完全クリア判定 (ステージ25クリア -> currentStageは26になる)
+            // 完全クリア判定
             if (this.currentStage > 25) {
                 if (typeof gtag !== 'undefined') { gtag('event', 'level_end', { 'level_name': 'survival', 'success': true, 'stage': 25 }); }
-                scoreText.innerText = "ALL CLEAR!";
+                scoreText.innerHTML = "ALL CLEAR!";
                 scoreText.style.color = "var(--accent-gold)";
                 this.els.nextBtn.innerText = "RETURN TO MENU";
                 this.els.nextBtn.onclick = () => AppController.returnToMenu();
-                shareBtn.classList.remove('hidden'); // シェアボタン表示
+                shareBtn.classList.remove('hidden'); 
             } else {
                 this.els.nextBtn.innerHTML = '<span class="btn-icon">▶</span> NEXT STAGE';
                 this.els.nextBtn.onclick = () => this.advanceStage();
-                shareBtn.classList.add('hidden'); // 通常クリア時はシェア非表示
+                shareBtn.classList.add('hidden'); 
             }
         } else {
-            // ★変更: 失敗時
+            // 失敗時
             if (typeof gtag !== 'undefined') { gtag('event', 'level_end', { 'level_name': 'survival', 'success': false, 'stage': this.currentStage }); }
             this.els.nextBtn.innerHTML = '<span class="btn-icon">↻</span> RESTART';
             this.els.nextBtn.onclick = () => this.restartGame();
-            shareBtn.classList.remove('hidden'); // シェアボタン表示
+            shareBtn.classList.remove('hidden'); 
         }
         this.updateHistoryLog();
     },
     advanceStage: function() { 
-        // 既存のALL CLEARアラートロジックはsubmitGuess側に移行したので削除し、単純に次へ進む
         this.prepareStage(); 
         AppController.showScreen('survival'); 
     },
@@ -854,7 +863,11 @@ const SurvivalGame = {
         localStorage.setItem("4stage_number", 1); localStorage.removeItem("4RGB_Temporary_Hex"); this.currentStage = 1; this.prepareStage(); this.updateHistoryLog(); AppController.showScreen('survival');
     },
     updateHistoryLog: function() {
-        const pb = localStorage.getItem("4stage_record"); document.getElementById('survival-pb').innerText = pb ? `${pb}` : "1";
+        // ★修正: 新しいID (survival-best-stage) を使用
+        const pb = localStorage.getItem("4stage_record"); 
+        const pbEl = document.getElementById('survival-best-stage');
+        if(pbEl) pbEl.innerText = pb ? `${pb}` : "--";
+
         let html = "";
         for(let i = this.currentStage - 1; i >= 1; i--) {
             const sc = localStorage.getItem("4stage_number"+i); const goal = this.aimScores[i-1];
@@ -868,26 +881,22 @@ const SurvivalGame = {
         document.getElementById('survival-history').innerHTML = html;
     },
     
-    // ★追加: シェア画像生成
+    // ★修正: シェア画像生成ロジックの変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
         
-        // クリアしたステージ番号 (現在ステージ-1。ただし26なら25)
         let clearedStage = this.currentStage - 1;
         if (this.currentStage > 25) clearedStage = 25;
-        if (clearedStage < 0) clearedStage = 0; // Stage 1で失敗した場合
+        if (clearedStage < 0) clearedStage = 0; 
 
-        // 表示するスコアとゴール (リザルト画面に表示されている今のラウンドのもの)
-        const score = document.getElementById('survival-result-score').innerText;
-        const goal = document.getElementById('survival-result-goal').innerText;
-        
-        // 色情報
-        const targetHex = Utils.rgbToHex(this.questionColor.r, this.questionColor.g, this.questionColor.b);
-        const r = document.getElementById('survival-R').value;
-        const g = document.getElementById('survival-G').value;
-        const b = document.getElementById('survival-B').value;
-        const inputHex = Utils.rgbToHex(Number(r), Number(g), Number(b));
+        // 最後にクリアしたステージのGOALを取得 (clearedStageが0ならStage1のゴールを表示など調整)
+        // 配列インデックスは clearedStage - 1 (例: Stage 12クリア -> index 11)
+        // もしStage 0なら、Goal表示は不要か、Stage 1のGoalを出す。
+        let goalText = "--";
+        if(clearedStage > 0) {
+            goalText = this.aimScores[clearedStage - 1] + "%";
+        }
 
         canvas.width = 1200;
         canvas.height = 800;
@@ -901,29 +910,30 @@ const SurvivalGame = {
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125);
         
-        // 緑色で SURVIVAL MODE
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#2ed573'; ctx.fillText("SURVIVAL MODE", 900, 125);
+        // ① 青色で SURVIVAL MODE
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#3742fa'; ctx.fillText("SURVIVAL MODE", 890, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // CLEAR STAGE XX
-        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; 
-        ctx.fillText(`CLEAR STAGE ${clearedStage}`, 60, 240);
-
-        // Score (Center Big)
-        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
+        // メイン表示エリア
+        // ② 到達STAGEを一番大きく
+        ctx.font = '900 150px "Inter", sans-serif'; 
+        ctx.textAlign = 'center'; 
+        ctx.fillStyle = '#ffffff'; 
+        ctx.fillText(`STAGE ${clearedStage}`, 600, 420);
         
-        // GOAL XX% (Below Score)
-        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText(`GOAL ${goal}`, 600, 280);
+        ctx.font = '40px sans-serif'; 
+        ctx.fillStyle = '#8b9bb4'; 
+        ctx.fillText("CLEARED", 600, 280);
 
-        // Colors
-        const drawColor = (x, y, color, label) => {
-            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
-            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
-        };
-        drawColor(400, 620, targetHex, "TARGET");
-        drawColor(800, 620, inputHex, "YOU");
+        // ③ ゴール表示
+        if(clearedStage > 0) {
+            ctx.font = 'bold 50px "JetBrains Mono", monospace'; 
+            ctx.fillStyle = '#2ed573'; // Goal達成感のある緑、あるいは白
+            ctx.fillText(`GOAL ${goalText}`, 600, 550);
+        }
+
+        // ④ 色とスコアは削除済み
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
