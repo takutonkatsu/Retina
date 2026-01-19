@@ -447,6 +447,53 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 .history-ao5-badge.highlight { background: var(--accent-yellow); color: #000; box-shadow: 0 0 5px rgba(255, 165, 2, 0.5); }
 .history-ao5-badge.placeholder { background: transparent; color: #444; border: 1px solid #333; }
 
+/* Rush History Specific */
+.rush-history-item {
+    display: grid;
+    /* Index | Correct | Max Combo | Score */
+    grid-template-columns: 40px 1fr 1fr 1.2fr;
+    gap: 5px;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+.rush-history-item.best-record {
+    background: linear-gradient(90deg, rgba(46, 213, 115, 0.1), transparent);
+    border-left: 3px solid var(--accent-green);
+}
+.rush-history-item.best-record .history-index {
+    color: var(--accent-green);
+    font-weight: bold;
+}
+
+/* Rush History Text Styles */
+.rush-stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.rush-stat-label {
+    font-size: 0.55rem;
+    color: #888;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+.rush-stat-val {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1;
+}
+.rush-score-val {
+    color: var(--accent-rush); /* オレンジ */
+    font-size: 1.2rem;
+}
 
 /* Rush Mode Styles (Green Theme) */
 .rush-header-grid {

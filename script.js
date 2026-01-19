@@ -391,9 +391,12 @@ const OriginGame = {
 };
 
 
-// Rush Mode (Updated)
+// Rush Mode (Updated with History & Max Combo Fix)
 const RushGame = {
-    timerInterval: null, timeLeft: 60, score: 0, combo: 0, questionColor: {}, count: 0, isPlaying: false,
+    timerInterval: null, timeLeft: 60, score: 0, 
+    combo: 0, maxCombo: 0, // ★追加: 最大コンボ記録用
+    questionColor: {}, count: 0, isPlaying: false,
+
     initialize: function() {
         this.els = { R: document.getElementById('rush-R'), G: document.getElementById('rush-G'), B: document.getElementById('rush-B'), valR: document.getElementById('rush-val-R'), valG: document.getElementById('rush-val-G'), valB: document.getElementById('rush-val-B'), qColor: document.getElementById('rush-question-color'), myColor: document.getElementById('rush-input-color'), timer: document.getElementById('rush-timer'), combo: document.getElementById('rush-combo-display'), currentScore: document.getElementById('rush-current-score') };
         const update = () => this.updateMyColor(); 
@@ -402,8 +405,11 @@ const RushGame = {
         AppController.showScreen('rush');
         this.startNewGame();
     },
+
     startNewGame: function() {
-        this.isPlaying = true; this.timeLeft = 60; this.score = 0; this.combo = 0; this.count = 0;
+        this.isPlaying = true; this.timeLeft = 60; this.score = 0; 
+        this.combo = 0; this.maxCombo = 0; // ★リセット
+        this.count = 0;
         this.setNextColor(); this.updateUI();
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.timerInterval = setInterval(() => {
@@ -413,40 +419,51 @@ const RushGame = {
             this.updateUI();
         }, 10);
     },
+
     setNextColor: function() {
         this.questionColor = Utils.generateRandomColor(); this.els.qColor.style.backgroundColor = this.questionColor.hex;
         this.els.R.value = Math.floor(Math.random() * 256); this.els.G.value = Math.floor(Math.random() * 256); this.els.B.value = Math.floor(Math.random() * 256);
         this.updateMyColor();
     },
+
     updateMyColor: function() {
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         this.els.valR.innerText = r; this.els.valG.innerText = g; this.els.valB.innerText = b;
         this.els.myColor.style.backgroundColor = Utils.rgbToHex(r, g, b);
     },
+
     updateUI: function() {
         this.els.timer.innerText = this.timeLeft.toFixed(2); this.els.currentScore.innerText = Math.floor(this.score);
         if (this.combo > 1) { this.els.combo.classList.remove('hidden'); this.els.combo.innerText = `${this.combo} COMBO`; } else { this.els.combo.classList.add('hidden'); }
     },
+
     submitGuess: function() {
         if (!this.isPlaying) return;
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         const acc = Utils.calculateScoreValue(this.questionColor, {r, g, b}); 
         let timeDelta = 0; let isBad = false;
-        if (acc < 90) { timeDelta = -5; this.combo = 0; isBad = true; } else {
+        
+        if (acc < 90) { 
+            timeDelta = -5; 
+            this.combo = 0; 
+            isBad = true; 
+        } else {
             if (acc >= 99) timeDelta = 5; else if (acc >= 98) timeDelta = 4; else if (acc >= 95) timeDelta = 2; else timeDelta = 0; 
-            this.combo++; this.score += (acc * 10) + (this.combo * 50); this.count++;
+            this.combo++; 
+            // ★追加: 最大コンボ更新
+            if(this.combo > this.maxCombo) this.maxCombo = this.combo;
+            
+            this.score += (acc * 10) + (this.combo * 50); 
+            this.count++;
         }
         
-        if (this.score >= 99999999) {
-            this.score = 99999999;
-            this.endGame();
-            return;
-        }
+        if (this.score >= 99999999) { this.score = 99999999; this.endGame(); return; }
         
         this.timeLeft += timeDelta; if (this.timeLeft < 0) this.timeLeft = 0; 
         this.triggerVisualEffect(timeDelta, isBad, acc.toFixed(2)+"%");
         if (this.timeLeft > 0) { this.setNextColor(); } else { this.endGame(); }
     },
+
     triggerVisualEffect: function(delta, isBad, accStr) {
         const container = document.getElementById('rush-effect-container');
         const el = document.createElement('div'); el.className = 'time-popup';
@@ -457,27 +474,109 @@ const RushGame = {
         el.style.transform = `translate(${rndX}px, ${rndY}px)`;
         container.appendChild(el); setTimeout(() => el.remove(), 800);
     },
+
     endGame: function() {
         this.isPlaying = false; clearInterval(this.timerInterval);
-
+        
+        // Google Analytics
         if (typeof gtag !== 'undefined') {
             gtag('event', 'level_end', {
                 'level_name': 'rush',
                 'score': Math.floor(this.score),
-                'max_combo': this.combo
+                'max_combo': this.maxCombo
             });
         }
 
-        AppController.showScreen('result-rush');
         const finalScore = Math.floor(this.score);
-        document.getElementById('rush-final-score').innerText = finalScore;
-        document.getElementById('rush-max-combo').innerText = this.combo; document.getElementById('rush-count').innerText = this.count;
+        
+        // ★追加: 履歴データの保存
+        let val = Number(localStorage.getItem("rush_index")) || 1;
+        localStorage.setItem("rush_score_" + val, finalScore);
+        localStorage.setItem("rush_count_" + val, this.count);
+        localStorage.setItem("rush_combo_" + val, this.maxCombo);
+        localStorage.setItem("rush_index", val + 1);
+
+        // ハイスコア更新チェック
         const currentBest = Number(localStorage.getItem('rush_best')) || 0;
+        let isNewRecord = false;
+        if (finalScore > currentBest) { 
+            localStorage.setItem('rush_best', finalScore); 
+            isNewRecord = true; 
+        }
+
+        AppController.showScreen('result-rush');
+        document.getElementById('rush-final-score').innerText = finalScore;
+        // ★修正: maxComboを表示
+        document.getElementById('rush-max-combo').innerText = this.maxCombo; 
+        document.getElementById('rush-count').innerText = this.count;
+        
         const newRecordEl = document.getElementById('rush-new-record');
-        if (finalScore > currentBest) { localStorage.setItem('rush_best', finalScore); newRecordEl.classList.remove('hidden'); } else { newRecordEl.classList.add('hidden'); }
+        if (isNewRecord) { newRecordEl.classList.remove('hidden'); } else { newRecordEl.classList.add('hidden'); }
         document.getElementById('rush-best').innerText = localStorage.getItem('rush_best') || 0;
+
+        // ★追加: 履歴の表示更新
+        this.updateHistoryLog();
     },
-    clearSaveData: function() { AppController.confirm("Reset Rush Records?", (y) => { if(y) { localStorage.removeItem('rush_best'); location.reload(); } }); }
+
+    // ★追加: 履歴ログ表示関数
+    updateHistoryLog: function() {
+        const list = document.getElementById('rush-history');
+        if(!list) return;
+        
+        const val = Number(localStorage.getItem("rush_index")) || 1;
+        const best = Number(localStorage.getItem('rush_best')) || 0;
+        let html = "";
+        
+        // 新しい順に表示
+        for(let i = val - 1; i > 0; i--) {
+            const sc = Number(localStorage.getItem("rush_score_"+i));
+            const cnt = localStorage.getItem("rush_count_"+i);
+            const cmb = localStorage.getItem("rush_combo_"+i);
+            
+            let rowClass = "rush-history-item";
+            let indexHtml = `<span class="history-index">#${i}</span>`;
+            
+            // ベストスコアの行をハイライト
+            if(sc === best && best > 0) {
+                rowClass += " best-record";
+                indexHtml = `<span class="history-index">👑</span>`;
+            }
+
+            html += `
+            <div class="${rowClass}">
+                ${indexHtml}
+                <div class="rush-stat-col">
+                    <span class="rush-stat-label">CORRECT</span>
+                    <span class="rush-stat-val">${cnt}</span>
+                </div>
+                <div class="rush-stat-col">
+                    <span class="rush-stat-label">MAX COMBO</span>
+                    <span class="rush-stat-val">${cmb}</span>
+                </div>
+                <div class="rush-stat-col">
+                    <span class="rush-stat-val rush-score-val">${sc}</span>
+                </div>
+            </div>`;
+        }
+        list.innerHTML = html;
+    },
+
+    clearSaveData: function() { 
+        AppController.confirm("Reset Rush Records?", (y) => { 
+            if(y) { 
+                // ★修正: 履歴データも全消去
+                const val = Number(localStorage.getItem("rush_index")) || 1;
+                for(let i=1; i<val; i++) {
+                    localStorage.removeItem("rush_score_"+i);
+                    localStorage.removeItem("rush_count_"+i);
+                    localStorage.removeItem("rush_combo_"+i);
+                }
+                localStorage.removeItem("rush_index");
+                localStorage.removeItem('rush_best'); 
+                location.reload(); 
+            } 
+        }); 
+    }
 };
 
 // Survival Mode (Unchanged)
