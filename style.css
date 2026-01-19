@@ -336,28 +336,28 @@ html, body {
 }
 .custom-range::-webkit-slider-thumb:active { transform: scale(1.2); }.val-num { width: 35px; text-align: right; font-family: var(--font-mono); font-size: 1rem; color: var(--text-main); font-weight: bold; flex-shrink: 0; }
 /* Main Action Button (GUESS / START etc) */
-/* 修正: パディングを増やして縦に長くし、フォントも少し大きく */
 .main-action-btn {
     width: 100%;
-    padding: 22px; /* 15px -> 22px に拡大 */
-    font-size: 1.3rem; /* 1.2rem -> 1.3rem に拡大 */
+    padding: 22px;
+    font-size: 1.3rem;
     font-weight: 900;
-    color: #fff;
-    background: linear-gradient(135deg, #fff, #bbb);
+    color: #fff; /* 文字色を白に */
+    /* 変更: オレンジ基調のスタイリッシュなグラデーション */
+    background: linear-gradient(135deg, #ffa502, #ff4757); 
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    color: #000;
     letter-spacing: 2px;
-    box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
+    /* 影もオレンジ系に合わせて調整 */
+    box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4); 
     transition: transform 0.1s, box-shadow 0.1s;
     margin-top: 20px;
     font-family: var(--font-ui);
-    touch-action: manipulation; /* ここにも念のため追加 */
+    touch-action: manipulation;
 }
 .main-action-btn:active {
     transform: scale(0.98);
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(255, 71, 87, 0.3);
 }
 .main-action-btn:disabled {
     opacity: 0.5;
