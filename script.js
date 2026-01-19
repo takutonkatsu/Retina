@@ -298,6 +298,7 @@ const OriginGame = {
         document.getElementById('origin-ans-color').style.backgroundColor = q.hex; document.getElementById('origin-ans-text').innerText = `${q.r},${q.g},${q.b}`;
         document.getElementById('origin-your-color').style.backgroundColor = Utils.rgbToHex(input.r,input.g,input.b); document.getElementById('origin-your-text').innerText = `${input.r},${input.g},${input.b}`;
     },
+    // 既存の updateHistoryLog を修正
     updateHistoryLog: function() {
         const val = Number(localStorage.getItem("index")) || 1; const pb = Number(localStorage.getItem("my_1record")) || 0; const bestAo5 = Number(localStorage.getItem("my_ao5record")) || 0;
         let html = "";
@@ -308,12 +309,82 @@ const OriginGame = {
             let ao5Html = ao5 ? `<div class="history-ao5-badge ${Number(ao5)===bestAo5&&bestAo5>0?'highlight':''}">Ao5: ${ao5}%</div>` : `<div class="history-ao5-badge placeholder">Ao5: --.--%</div>`;
             let rowClass = "history-item"; let indexHtml = `<span class="history-index">#${i}</span>`;
             if(Number(sc) === pb && pb > 0) { rowClass += " best-record"; indexHtml = `<span class="history-index">👑</span>`; }
-            html += `<div class="${rowClass}">${indexHtml}<div class="history-colors"><div class="color-row"><span class="label-box" style="color:#aaa">TARGET</span><span class="chip-xs" style="background:${ansHex}"></span><span>${ansTxt}</span></div><div class="color-row"><span class="label-box" style="color:#fff">YOU</span><span class="chip-xs" style="background:${myHex}"></span><span>${myTxt}</span></div></div><div class="history-right"><div class="history-score-val">${sc}%</div>${ao5Html}</div></div>`;
+            
+            // ★変更: onclickを追加
+            html += `<div class="${rowClass}" onclick="OriginGame.shareHistoryItem(${i})">${indexHtml}<div class="history-colors"><div class="color-row"><span class="label-box" style="color:#aaa">TARGET</span><span class="chip-xs" style="background:${ansHex}"></span><span>${ansTxt}</span></div><div class="color-row"><span class="label-box" style="color:#fff">YOU</span><span class="chip-xs" style="background:${myHex}"></span><span>${myTxt}</span></div></div><div class="history-right"><div class="history-score-val">${sc}%</div>${ao5Html}</div></div>`;
         }
         document.getElementById('origin-history').innerHTML = html;
         document.getElementById('origin-pb').innerText = (pb ? pb.toFixed(2) : "--") + "%"; 
         document.getElementById('origin-ao5').innerText = (bestAo5 ? bestAo5.toFixed(2) : "--") + "%";
     },
+
+    // ★追加: 過去のOrigin履歴をシェアするメソッド
+    shareHistoryItem: function(index) {
+        const score = localStorage.getItem("score" + index);
+        const ao5 = localStorage.getItem("Ao5" + index);
+        const ao5Text = ao5 ? ao5 + "%" : "--";
+        const targetHex = localStorage.getItem("answer_rgb16" + index);
+        const inputHex = localStorage.getItem("input_rgb16" + index);
+        const inputRgb = localStorage.getItem("input_rgb" + index); // 文字列 (r,g,b)
+
+        if (!score || !targetHex || !inputHex) return;
+
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200; canvas.height = 800;
+
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
+
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff4757'; ctx.fillText("ORIGIN MODE", 900, 125);
+
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; ctx.fillText(`Attempt #${index}`, 60, 240);
+        ctx.textAlign = 'right'; ctx.fillText(`Ao5: ${ao5Text}`, 1140, 240);
+
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score + "%", 600, 440);
+        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
+
+        const drawColor = (x, y, color, label, rgbStr) => {
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
+            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
+            
+            // RGB値も描画 (もしあれば)
+            if(rgbStr) {
+               const cleanRgb = rgbStr.replace(/[()]/g, '').replace(/,/g, ', ');
+               ctx.font = '28px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(cleanRgb, x, y + 120);
+            }
+        };
+        // 保存データのRGB文字列を取得して渡す
+        const ansRgb = localStorage.getItem("answer_rgb" + index);
+        
+        drawColor(400, 620, targetHex, "TARGET", ansRgb);
+        drawColor(800, 620, inputHex, "YOU", inputRgb);
+
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], `retina_origin_${index}.png`, { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                const ao5Str = (!ao5) ? "Ao5: --" : `Ao5: ${ao5}%`;
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Result', 
+                    text: `Retina - Origin Mode #${index}\nScore: ${score}%\n${ao5Str}\n\n#Retina #色彩感覚 #RGB`
+                }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); link.download = `retina_origin_${index}.png`; link.href = canvas.toDataURL(); link.click();
+            }
+        });
+    },
+
     clearSaveData: function() { 
         AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
     },
@@ -518,7 +589,7 @@ const RushGame = {
         this.updateHistoryLog();
     },
 
-    // ★追加: 履歴ログ表示関数
+    // 既存の updateHistoryLog を修正
     updateHistoryLog: function() {
         const list = document.getElementById('rush-history');
         if(!list) return;
@@ -527,7 +598,6 @@ const RushGame = {
         const best = Number(localStorage.getItem('rush_best')) || 0;
         let html = "";
         
-        // 新しい順に表示
         for(let i = val - 1; i > 0; i--) {
             const sc = Number(localStorage.getItem("rush_score_"+i));
             const cnt = localStorage.getItem("rush_count_"+i);
@@ -536,14 +606,14 @@ const RushGame = {
             let rowClass = "rush-history-item";
             let indexHtml = `<span class="history-index">#${i}</span>`;
             
-            // ベストスコアの行をハイライト
             if(sc === best && best > 0) {
                 rowClass += " best-record";
                 indexHtml = `<span class="history-index">👑</span>`;
             }
 
+            // ★変更: onclickを追加
             html += `
-            <div class="${rowClass}">
+            <div class="${rowClass}" onclick="RushGame.shareHistoryItem(${i})">
                 ${indexHtml}
                 <div class="rush-stat-col">
                     <span class="rush-stat-label">CORRECT</span>
@@ -559,6 +629,63 @@ const RushGame = {
             </div>`;
         }
         list.innerHTML = html;
+    },
+
+    // ★追加: 過去のRush履歴をシェアするメソッド
+    shareHistoryItem: function(index) {
+        const score = localStorage.getItem("rush_score_" + index);
+        const count = localStorage.getItem("rush_count_" + index);
+        const maxCombo = localStorage.getItem("rush_combo_" + index);
+
+        if (!score) return;
+
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200; canvas.height = 800; 
+
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
+
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125);
+        
+        // RUSH MODE (Green)
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#2ed573'; ctx.fillText("RUSH MODE", 940, 125);
+
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; ctx.fillText(`Attempt #${index}`, 60, 240);
+
+        // SCORE
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
+        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
+
+        // Sub Stats
+        const drawStat = (x, label, val) => {
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, 560);
+            ctx.font = 'bold 60px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(val, x, 630);
+        };
+        drawStat(400, "CORRECT", count);
+        drawStat(800, "MAX COMBO", maxCombo);
+
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], `retina_rush_${index}.png`, { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Rush Result', 
+                    text: `Retina - Rush Mode #${index}\nScore: ${score}\n\n#Retina #色彩感覚 #RGB`
+                }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); link.download = `retina_rush_${index}.png`; link.href = canvas.toDataURL(); link.click();
+            }
+        });
     },
 
     // ★修正: ここに generateShareImage を正しく配置
