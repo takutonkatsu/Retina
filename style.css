@@ -145,16 +145,32 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     color: #fff;
 }
 
-/* Copyright */
+/* Copyright (Button Style) */
 .copyright {
+    display: inline-block; /* ブロック要素にしてパディングを効かせる */
+    margin-top: 15px;      /* 上のマージンを確保 */
+    padding: 6px 12px;     /* 内側の余白 */
+    background: rgba(255, 255, 255, 0.05); /* 薄い背景色 */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 薄い枠線 */
+    border-radius: 20px;   /* 丸み */
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-mono);
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
     cursor: pointer;
-    transition: 0.2s;
-    display: inline-block;
+    transition: all 0.2s ease;
 }
+
 .copyright:hover {
-    color: var(--primary-cyan);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--primary-multi); /* ホバー時に紫系（Another Worldへのヒント色）に */
+    border-color: var(--primary-multi);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(156, 136, 255, 0.2);
+}
+
+.copyright:active {
+    transform: translateY(0);
 }
 
 /* --- Privacy & Policy Styles (Retina Tech Theme) --- */

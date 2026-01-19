@@ -962,7 +962,9 @@ const VersusGame = {
         if(!name) return AppController.alert("Please enter your name.");
         
         let maxWins = parseInt(document.getElementById('versus-goal-input').value);
-        if (isNaN(maxWins) || maxWins < 0) maxWins = 5;
+        
+        // ★修正: 1未満や無効な値は「5」に、99超は「99」に強制
+        if (isNaN(maxWins) || maxWins < 1) maxWins = 5;
         if (maxWins > 99) maxWins = 99;
 
         localStorage.setItem("friend_name", name);
@@ -1178,7 +1180,8 @@ const VersusGame = {
                  AppController.showScreen('versus-lobby');
             }
 
-            const goalText = (data.maxWins > 0) ? `First to ${data.maxWins} Wins` : "Endless Mode";
+            // ★修正: エンドレスモードの分岐を削除し、常に勝利数を表示
+            const goalText = `First to ${data.maxWins} Wins`;
             document.getElementById('versus-lobby-goal').innerText = `GOAL: ${goalText}`;
 
             ['p1', 'p2', 'p3', 'p4'].forEach((key, i) => {
@@ -1396,7 +1399,8 @@ const VersusGame = {
             else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#fff"; }
         }
 
-        document.getElementById('versus-goal-val').innerText = (goal > 0) ? goal : "∞";
+        // ★修正: ∞表示のロジックを削除
+        document.getElementById('versus-goal-val').innerText = goal;
         document.getElementById('versus-ans-color').style.backgroundColor = q.hex; 
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
@@ -1484,8 +1488,16 @@ document.getElementById('versus-room-input').addEventListener('input', function(
 
 document.getElementById('versus-goal-input').addEventListener('input', function(e) {
     this.value = this.value.replace(/[^0-9]/g, '');
-    if (parseInt(this.value) > 99) this.value = 99;
+    // ★修正: 0始まりを防ぐための簡易チェック（空でなければ数値化して範囲確認）
+    if (this.value !== '') {
+        let val = parseInt(this.value);
+        if (val > 99) this.value = 99;
+        // 入力中は0を許容しないと打ちにくい場合があるため、blur(フォーカス外れ)で最小値を確定させるのが一般的ですが、
+        // ここではcreateRoom時に厳密にチェックするため、上限のみ制限しておきます。
+    }
 });
+// フォーカスが外れた時に1未満なら1にする処理を追加しても良いですが、
+// CreateRoom関数内で `maxWins < 1` なら `5` にリセットする安全策を入れているのでそのままでOKです。
 
 // ★修正: 究極のチュートリアル
 const Tutorial = {
