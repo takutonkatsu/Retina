@@ -433,9 +433,21 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     border-radius: 8px; 
     margin-bottom: 4px; 
 }
-.history-item.best-record { background: linear-gradient(90deg, rgba(255, 165, 2, 0.1), transparent); border-left: 3px solid var(--accent-yellow); }
-.history-item.best-record .history-index { color: var(--accent-yellow); font-weight: bold; }
-.history-item.best-record .history-score-val { color: var(--accent-yellow); }
+/* --- Origin History Style Update --- */
+/* 変更前: 黄色系のグラデーションとボーダー */
+/* 変更後: 赤色(Originテーマ)のグラデーションとボーダー */
+.history-item.best-record { 
+    background: linear-gradient(90deg, rgba(255, 71, 87, 0.1), transparent); /* 赤系背景 */
+    border-left: 3px solid var(--accent-red); /* 赤ボーダー */
+}
+.history-item.best-record .history-index { 
+    color: var(--accent-red); /* 文字色も赤 */
+    font-weight: bold; 
+}
+/* ベストスコアの数値自体も強調したい場合は以下を追加（任意） */
+.history-item.best-record .history-score-val {
+    color: var(--accent-red);
+}
 .history-index { font-size: 0.85rem; color: #666; font-family: var(--font-mono); text-align: left; grid-column: 1; }
 .history-colors { display: flex; flex-direction: column; gap: 3px; min-width: 0; grid-column: 2; }
 .color-row { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -490,9 +502,15 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     color: #fff;
     line-height: 1;
 }
+/* 既存の .rush-score-val を修正: デフォルトは白にする */
 .rush-score-val {
-    color: var(--accent-rush); /* オレンジ */
+    color: #fff; /* 変更: オレンジから白へ */
     font-size: 1.2rem;
+}
+
+/* 追加: ベストレコードの時だけオレンジにする */
+.rush-history-item.best-record .rush-score-val {
+    color: var(--accent-rush);
 }
 
 /* Rush Mode Styles (Green Theme) */
