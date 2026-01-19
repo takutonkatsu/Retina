@@ -1799,6 +1799,7 @@ const VersusGame = {
         }
 
         const resultContainer = document.getElementById('versus-result-container');
+        // players-4 クラスなどがCSS側で効くようになる
         let html = `<div class="res-grid-container players-${activePlayers.length}">`;
         activePlayers.forEach((p) => {
             let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : ''));
@@ -1823,7 +1824,13 @@ const VersusGame = {
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-        playersCompContainer.className = "multi-players-wrapper flex-row"; 
+        
+        // ★修正: 4人の場合は 2x2 Grid を強制するクラスを適用
+        if (activePlayers.length === 4) {
+            playersCompContainer.className = "multi-players-wrapper grid-2x2-force";
+        } else {
+            playersCompContainer.className = "multi-players-wrapper flex-row"; 
+        }
 
         let compareHtml = ''; 
         let sortedByKey = [...activePlayers].sort((a, b) => a.key.localeCompare(b.key));
@@ -1903,19 +1910,30 @@ const VersusGame = {
             }
         }
     },
-    // ★追加: 履歴描画用メソッド
+    
+    // ★修正: 履歴描画用メソッド (4人時のサイズ調整を追加)
     renderHistory: function(data) {
         const container = document.getElementById('versus-history');
         if(!data.history) { container.classList.add('hidden'); return; }
         container.classList.remove('hidden');
 
-        // 現在アクティブなプレイヤーID (p1, p2...) を取得 (並び順を固定するため)
+        // 現在アクティブなプレイヤーID (p1, p2...) を取得
         const playerKeys = ['p1','p2','p3','p4'].filter(k => data.players[k].status !== 'empty');
+        const playerCount = playerKeys.length;
+
+        // 4人の場合は専用クラスをつけてCSSでさらにフォントを小さくする
+        if (playerCount === 4) {
+            container.classList.add('players-4-history');
+        } else {
+            container.classList.remove('players-4-history');
+        }
         
-        let html = `<div class="vh-grid" style="grid-template-columns: 50px repeat(${playerKeys.length}, 1fr);">`;
+        // ★修正: 左端(Round列)の幅を人数に応じて調整 (4人時は少し狭く: 40px, 通常: 50px)
+        const firstColWidth = playerCount === 4 ? "35px" : "50px";
+        let html = `<div class="vh-grid" style="grid-template-columns: ${firstColWidth} repeat(${playerCount}, 1fr);">`;
 
         // 1行目: プレイヤー名
-        html += `<div class="vh-cell" style="border:none;"></div>`; // 左上空セル
+        html += `<div class="vh-cell" style="border:none;"></div>`;
         playerKeys.forEach(k => {
             html += `<div class="vh-cell vh-header-name">${Utils.escapeHtml(data.players[k].name)}</div>`;
         });
