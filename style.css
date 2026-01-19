@@ -104,7 +104,7 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 /* Footer */
 .app-footer {
     text-align: center;
-    padding: 15px 0 20px; /* 上下をさらに縮小してタイトに */
+    padding: 12px 0 15px; /* 上下をさらに短縮 (15px/20px -> 12px/15px) */
     margin-top: 40px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.3);
@@ -150,12 +150,12 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
 
 /* Copyright (Button Style) */
 .copyright {
-    display: inline-block; /* ブロック要素にしてパディングを効かせる */
-    margin-top: 15px;      /* 上のマージンを確保 */
-    padding: 6px 12px;     /* 内側の余白 */
-    background: rgba(255, 255, 255, 0.05); /* 薄い背景色 */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* 薄い枠線 */
-    border-radius: 20px;   /* 丸み */
+    display: inline-block;
+    margin-top: 4px;       /* 上の間隔を大幅に削減 (15px -> 4px) */
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
     font-size: 0.75rem;
     font-family: var(--font-mono);
     color: rgba(255, 255, 255, 0.5);
