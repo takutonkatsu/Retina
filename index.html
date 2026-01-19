@@ -452,9 +452,12 @@
     </main>
 
     <footer class="app-footer">
-        <div style="margin-bottom: 15px; display:flex; gap:15px; justify-content:center; align-items:center;">
-            <span class="btn-text" style="font-size: 0.75rem; text-decoration: none; opacity: 0.7;" onclick="AppController.showPolicy()">Privacy</span>
-            <a href="https://www.buymeacoffee.com/takutonkatsu" target="_blank" class="bmc-link">
+        <div style="margin-bottom: 20px; display:flex; gap:15px; justify-content:center; align-items:center; flex-wrap: wrap;">
+            <button class="footer-btn privacy-link" onclick="AppController.showPolicy()">
+                <span style="font-size:1rem;">🔒</span> Privacy
+            </button>
+            
+            <a href="https://www.buymeacoffee.com/takutonkatsu" target="_blank" class="footer-btn bmc-link">
                 <span style="font-size:1.1rem;">☕</span> Support Dev
             </a>
         </div>
