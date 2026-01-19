@@ -1825,7 +1825,7 @@ const VersusGame = {
         
         const playersCompContainer = document.getElementById('versus-players-compare');
         
-        // ★修正: 4人の場合は 2x2 Grid を強制するクラスを適用
+        // ★確認・修正: 4人の場合は grid-2x2-force を適用
         if (activePlayers.length === 4) {
             playersCompContainer.className = "multi-players-wrapper grid-2x2-force";
         } else {

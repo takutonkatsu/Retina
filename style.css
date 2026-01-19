@@ -1004,3 +1004,107 @@ html, body {
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
+
+/* ... (既存のスタイル) ... */
+
+/* --- Versus Result Layout Fixes --- */
+
+/* 4人対戦時の2x2配置 (中央寄せ・強制適用) */
+.grid-2x2-force {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 30px; /* 縦横の間隔 */
+    justify-content: center;
+    justify-items: center;
+    margin: 0 auto;     /* コンテナ自体を中央に */
+    width: fit-content; /* コンテンツに合わせて幅を決定 */
+    max-width: 100%;
+}
+
+/* リザルトボックスの被り防止 */
+.res-grid-box {
+    /* ...既存のプロパティ... */
+    justify-content: flex-start; /* 上詰めにする */
+    padding-top: 10px;
+    min-height: 110px; /* 高さを確保 */
+}
+.res-grid-rank {
+    font-size: 1.1rem; 
+    margin-bottom: 5px;
+    line-height: 1;
+}
+.res-grid-score {
+    margin-bottom: 5px; /* スコアと名前の間隔 */
+}
+.res-you-badge {
+    margin-top: auto; /* 一番下に配置 */
+    margin-bottom: 5px;
+    font-size: 0.65rem;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* --- Versus History Grid Lines (Gap Method) --- */
+.vh-grid {
+    display: grid;
+    /* 変更: 線を見せるために gap: 1px にし、背景色で線を表現 */
+    gap: 1px; 
+    background-color: rgba(255, 255, 255, 0.1); /* 線の色 */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* 外枠 */
+    text-align: center;
+    align-items: stretch;
+    min-width: 280px;
+}
+.vh-cell {
+    /* 変更: セルごとのボーダーを削除し、背景色で塗りつぶす */
+    border-bottom: none; 
+    background-color: rgba(20, 22, 28, 0.95); /* セルの色（透過少し） */
+    padding: 8px 4px;
+    font-size: 0.8rem;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+}
+.vh-winner-cell {
+    /* 勝者は少し明るい背景 */
+    background-color: rgba(255, 221, 0, 0.08);
+}
+/* ヘッダー背景 */
+.vh-header-name, .vh-header-wins {
+    background-color: rgba(30, 35, 45, 1);
+}
+
+/* --- Daily Color Layout Fix --- */
+.daily-section {
+    /* ...既存... */
+    flex-wrap: wrap; /* 修正: 画面幅が狭い時に折り返す */
+}
+@media (max-width: 600px) {
+    .daily-section {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 20px;
+    }
+    .daily-main-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        width: 100%; /* 幅を確保 */
+    }
+    .daily-content {
+        width: 100%;
+    }
+    .daily-desc {
+        /* 長文でも崩れないように */
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+    .daily-status {
+        width: 100%;
+        margin-top: 15px;
+        box-sizing: border-box; /* パディングを含める */
+    }
+}
