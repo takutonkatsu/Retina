@@ -697,6 +697,7 @@ const AnotherGame = {
         localStorage.setItem("3index", val + 1);
         this.updateHistoryLog();
     },
+// AnotherGame.updateHistoryLog の修正
     updateHistoryLog: function() {
         const list = document.getElementById('another-history'); 
         const val = Number(localStorage.getItem("3index")) || 1;
@@ -705,7 +706,8 @@ const AnotherGame = {
             const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; 
             const txt = localStorage.getItem("3input_rgb"+i) || ''; 
             const date = localStorage.getItem("3date"+i) || '';
-            html += `<div class="history-item">
+            // 変更: class="history-item storage-item" にして専用グリッドを適用
+            html += `<div class="history-item storage-item">
                 <span class="history-index">#${i}</span>
                 <div class="history-colors">
                     <div class="color-row">
@@ -824,72 +826,69 @@ const AnotherGame = {
         });
     },
 
+    // RushGame に generateShareImage を追加
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
-        const max = Number(localStorage.getItem("3index")) || 1;
-        const count = max - 1;
-
-        if (count === 0) return AppController.alert("No colors saved!");
-
-        const cols = 5;
-        const rows = Math.ceil(count / cols);
-        const itemSize = 200; 
-        const headerHeight = 240;
-        const footerHeight = 80;
-        const width = 1200;
-        const height = headerHeight + (rows * itemSize) + footerHeight;
-
-        canvas.width = width;
-        canvas.height = height;
+        const score = document.getElementById('rush-final-score').innerText;
+        const count = document.getElementById('rush-count').innerText;
+        const maxCombo = document.getElementById('rush-max-combo').innerText;
         
-        const grad = ctx.createLinearGradient(0, 0, width, height);
+        // 試行回数（履歴インデックス）を取得
+        const val = Number(localStorage.getItem("rush_index")) || 1;
+        const attemptNum = val - 1; 
+
+        canvas.width = 1200;
+        canvas.height = 800; 
+
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
         grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125); 
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+        ctx.fillText("Retina", 180, 125);
+        
+        // RUSH MODE (Green)
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#2ed573'; ctx.fillText("RUSH MODE", 940, 125);
+
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'left'; ctx.fillText(`Attempt #${attemptNum}`, 60, 240);
 
-        for(let i=1; i<max; i++) {
-            const hex = localStorage.getItem("3input_rgb16"+i);
-            const txt = localStorage.getItem("3input_rgb"+i); 
-            
-            const idx = i - 1;
-            const x = 120 + (idx % cols) * 240; 
-            const y = headerHeight + 100 + Math.floor(idx / cols) * 200;
+        // SCORE
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
+        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
 
-            ctx.save();
-            ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fillStyle = hex; ctx.fill();
-            ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
-            ctx.restore();
-
-            ctx.font = '20px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center';
-            ctx.fillText(txt.replace(/[()]/g, ''), x, y + 100); 
-        }
+        // Sub Stats (Correct / Combo)
+        const drawStat = (x, label, val) => {
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, 560);
+            ctx.font = 'bold 60px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(val, x, 630);
+        };
+        drawStat(400, "CORRECT", count);
+        drawStat(800, "MAX COMBO", maxCombo);
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, height - 30); 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
 
         canvas.toBlob(blob => {
             if (typeof gtag !== 'undefined') {
                 gtag('event', 'share', {
                     'method': 'image',
-                    'content_type': 'color_storage_all' 
+                    'content_type': 'rush_result' 
                 });
             }
-            const file = new File([blob], "retina_storage.png", { type: "image/png" });
+
+            const file = new File([blob], "retina_rush.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ 
                     files: [file], 
-                    title: 'Retina Color Storage',
-                    text: `Retina - Color Storage\nMy Color Collection\n\n#Retina #色彩感覚 #RGB`
+                    title: 'Retina Rush Result', 
+                    text: `Retina - Rush Mode #${attemptNum}\nScore: ${score}\n\n#Retina #色彩感覚 #RGB`
                 }).catch(console.error);
             } else {
-                const link = document.createElement('a'); link.download = `retina_storage.png`; link.href = canvas.toDataURL(); link.click();
+                const link = document.createElement('a'); link.download = `retina_rush_${attemptNum}.png`; link.href = canvas.toDataURL(); link.click();
             }
         });
     },
