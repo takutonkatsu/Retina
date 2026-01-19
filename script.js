@@ -804,7 +804,6 @@ const SurvivalGame = {
         AppController.showScreen('result-survival');
         const scoreText = document.getElementById('survival-score-text'); 
         
-        // ★修正: Clear時にステージ番号を表示
         if (isClear) {
             scoreText.innerHTML = `<span class="stage-label-small">STAGE ${this.currentStage}</span>Clear!`;
             scoreText.style.color = "var(--accent-green)";
@@ -832,7 +831,6 @@ const SurvivalGame = {
             localStorage.setItem("4stage_number", this.currentStage); 
             localStorage.removeItem("4RGB_Temporary_Hex");
 
-            // 完全クリア判定
             if (this.currentStage > 25) {
                 if (typeof gtag !== 'undefined') { gtag('event', 'level_end', { 'level_name': 'survival', 'success': true, 'stage': 25 }); }
                 scoreText.innerHTML = "ALL CLEAR!";
@@ -846,7 +844,10 @@ const SurvivalGame = {
                 shareBtn.classList.add('hidden'); 
             }
         } else {
-            // 失敗時
+            // ★修正: 失敗時に即座に進行状況をリセットし、リロード等による再挑戦(不正)を防ぐ
+            localStorage.setItem("4stage_number", 1);
+            localStorage.removeItem("4RGB_Temporary_Hex");
+            
             if (typeof gtag !== 'undefined') { gtag('event', 'level_end', { 'level_name': 'survival', 'success': false, 'stage': this.currentStage }); }
             this.els.nextBtn.innerHTML = '<span class="btn-icon">↻</span> RESTART';
             this.els.nextBtn.onclick = () => this.restartGame();
@@ -862,125 +863,34 @@ const SurvivalGame = {
         for(let i=1; i<=26; i++) { localStorage.removeItem("4stage_number"+i); localStorage.removeItem("4answer_rgb16_"+i); localStorage.removeItem("4input_rgb16_"+i); localStorage.removeItem("4answer_rgb_"+i); localStorage.removeItem("4input_rgb_"+i); }
         localStorage.setItem("4stage_number", 1); localStorage.removeItem("4RGB_Temporary_Hex"); this.currentStage = 1; this.prepareStage(); this.updateHistoryLog(); AppController.showScreen('survival');
     },
-    // 既存の updateHistoryLog を修正
     updateHistoryLog: function() {
-        // ... (ベスト記録表示の既存コード) ...
         const pb = localStorage.getItem("4stage_record"); 
         const pbEl = document.getElementById('survival-best-stage');
         if(pbEl) pbEl.innerText = pb ? `${pb}` : "--";
 
         let html = "";
         for(let i = this.currentStage - 1; i >= 1; i--) {
-            const sc = localStorage.getItem("4stage_number"+i); 
-            const goal = this.aimScores[i-1];
-            const ansHex = localStorage.getItem("4answer_rgb16_"+i) || '#000'; 
-            const myHex = localStorage.getItem("4input_rgb16_"+i) || '#000';
-            const ansTxt = localStorage.getItem("4answer_rgb_"+i) || ''; 
-            const myTxt = localStorage.getItem("4input_rgb_"+i) || '';
-            
+            const sc = localStorage.getItem("4stage_number"+i); const goal = this.aimScores[i-1];
+            const ansHex = localStorage.getItem("4answer_rgb16_"+i) || '#000'; const myHex = localStorage.getItem("4input_rgb16_"+i) || '#000';
+            const ansTxt = localStorage.getItem("4answer_rgb_"+i) || ''; const myTxt = localStorage.getItem("4input_rgb_"+i) || '';
             if(sc) {
                 const stNum = i.toString().padStart(2, '0');
-                // ★変更: onclick="SurvivalGame.shareHistoryItem(${i})" を追加
                 html += `<div class="history-item" onclick="SurvivalGame.shareHistoryItem(${i})"><div class="history-index" style="width:auto; min-width:30px;"><span class="stage-badge-history">${stNum}</span></div><div class="history-colors"><div class="color-row"><span class="label-box" style="color:#aaa">TARGET</span><span class="chip-xs" style="background:${ansHex}"></span><span>${ansTxt}</span></div><div class="color-row"><span class="label-box" style="color:#fff">YOU</span><span class="chip-xs" style="background:${myHex}"></span><span>${myTxt}</span></div></div><div class="history-right"><div class="history-score-val">${sc}%</div><div class="history-goal-text">GOAL ${goal}%</div></div></div>`;
             }
         }
         document.getElementById('survival-history').innerHTML = html;
     },
     
-    // ★追加: 過去のSurvival履歴を詳細画像でシェアするメソッド
-    shareHistoryItem: function(stageIndex) {
-        const score = localStorage.getItem("4stage_number" + stageIndex);
-        const goal = this.aimScores[stageIndex - 1]; // 配列は0始まりなので -1
-        
-        const targetHex = localStorage.getItem("4answer_rgb16_" + stageIndex);
-        const inputHex = localStorage.getItem("4input_rgb16_" + stageIndex);
-        const ansTxt = localStorage.getItem("4answer_rgb_" + stageIndex); // RGB文字列
-        const myTxt = localStorage.getItem("4input_rgb_" + stageIndex);   // RGB文字列
-
-        if (!score || !targetHex) return;
-
-        const canvas = document.getElementById('share-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 1200; canvas.height = 800;
-
-        // 背景
-        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
-        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
-        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
-
-        // ロゴ
-        const img = document.getElementById('source-logo-icon');
-        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125);
-        
-        // モード名 (右上に青色)
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#3742fa'; 
-        ctx.textAlign = 'right';
-        ctx.fillText("SURVIVAL MODE", 1140, 125);
-
-        // 区切り線
-        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
-        
-        // STAGE XX (左) と GOAL XX% (右)
-        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; 
-        ctx.textAlign = 'left'; ctx.fillText(`STAGE ${stageIndex}`, 60, 240);
-        
-        ctx.textAlign = 'right'; ctx.fillStyle = '#2ed573'; // Goalは緑系などで強調
-        ctx.fillText(`GOAL ${goal}%`, 1140, 240);
-
-        // メインスコア
-        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score + "%", 600, 440);
-        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
-
-        // 色の描画関数
-        const drawColor = (x, y, color, label, rgbStr) => {
-            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
-            
-            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
-            
-            // RGB値
-            if(rgbStr) {
-               const cleanRgb = rgbStr.replace(/[()]/g, '').replace(/,/g, ', ');
-               ctx.font = '28px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(cleanRgb, x, y + 120);
-            }
-        };
-        
-        drawColor(400, 620, targetHex, "TARGET", ansTxt);
-        drawColor(800, 620, inputHex, "YOU", myTxt);
-
-        // URL
-        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
-
-        // 画像生成とシェア
-        canvas.toBlob(blob => {
-            const file = new File([blob], `retina_survival_${stageIndex}.png`, { type: "image/png" });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ 
-                    files: [file], 
-                    title: 'Retina Survival Result', 
-                    text: `Retina - Survival Mode STAGE ${stageIndex}\nScore: ${score}% (GOAL: ${goal}%)\n\n#Retina #色彩感覚 #RGB`
-                }).catch(console.error);
-            } else {
-                const link = document.createElement('a'); link.download = `retina_survival_${stageIndex}.png`; link.href = canvas.toDataURL(); link.click();
-            }
-        });
-    },
-    
-    // ★修正: シェア画像生成ロジックの変更
     generateShareImage: function() {
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
         
         let clearedStage = this.currentStage - 1;
+        // 失敗時でも this.currentStage は失敗したステージ数のまま(リセットはlocalStorage上のみ)なので、-1 がクリアしたステージ。
+        // ただし Stage1で失敗した場合は 0 になる。
         if (this.currentStage > 25) clearedStage = 25;
         if (clearedStage < 0) clearedStage = 0; 
 
-        // 最後にクリアしたステージのGOALを取得 (clearedStageが0ならStage1のゴールを表示など調整)
-        // 配列インデックスは clearedStage - 1 (例: Stage 12クリア -> index 11)
-        // もしStage 0なら、Goal表示は不要か、Stage 1のGoalを出す。
         let goalText = "--";
         if(clearedStage > 0) {
             goalText = this.aimScores[clearedStage - 1] + "%";
@@ -998,13 +908,10 @@ const SurvivalGame = {
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125);
         
-        // ① 青色で SURVIVAL MODE
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#3742fa'; ctx.fillText("SURVIVAL MODE", 890, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // メイン表示エリア
-        // ② 到達STAGEを一番大きく
         ctx.font = '900 150px "Inter", sans-serif'; 
         ctx.textAlign = 'center'; 
         ctx.fillStyle = '#ffffff'; 
@@ -1014,14 +921,11 @@ const SurvivalGame = {
         ctx.fillStyle = '#8b9bb4'; 
         ctx.fillText("CLEARED", 600, 280);
 
-        // ③ ゴール表示
         if(clearedStage > 0) {
             ctx.font = 'bold 50px "JetBrains Mono", monospace'; 
-            ctx.fillStyle = '#2ed573'; // Goal達成感のある緑、あるいは白
+            ctx.fillStyle = '#2ed573'; 
             ctx.fillText(`GOAL ${goalText}`, 600, 550);
         }
-
-        // ④ 色とスコアは削除済み
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
@@ -1043,6 +947,77 @@ const SurvivalGame = {
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_survival_${clearedStage}.png`; link.href = canvas.toDataURL(); link.click();
+            }
+        });
+    },
+    
+    shareHistoryItem: function(stageIndex) {
+        const score = localStorage.getItem("4stage_number" + stageIndex);
+        const goal = this.aimScores[stageIndex - 1]; 
+        
+        const targetHex = localStorage.getItem("4answer_rgb16_" + stageIndex);
+        const inputHex = localStorage.getItem("4input_rgb16_" + stageIndex);
+        const ansTxt = localStorage.getItem("4answer_rgb_" + stageIndex); 
+        const myTxt = localStorage.getItem("4input_rgb_" + stageIndex);
+
+        if (!score || !targetHex) return;
+
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200; canvas.height = 800;
+
+        const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, 800);
+
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125);
+        
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#3742fa'; 
+        ctx.textAlign = 'right';
+        ctx.fillText("SURVIVAL MODE", 1140, 125);
+
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+        
+        ctx.font = '32px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; 
+        ctx.textAlign = 'left'; ctx.fillText(`STAGE ${stageIndex}`, 60, 240);
+        
+        ctx.textAlign = 'right'; ctx.fillStyle = '#2ed573'; 
+        ctx.fillText(`GOAL ${goal}%`, 1140, 240);
+
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score + "%", 600, 440);
+        ctx.font = '40px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("SCORE", 600, 280);
+
+        const drawColor = (x, y, color, label, rgbStr) => {
+            ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
+            
+            ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+            ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
+            
+            if(rgbStr) {
+               const cleanRgb = rgbStr.replace(/[()]/g, '').replace(/,/g, ', ');
+               ctx.font = '28px "JetBrains Mono", monospace'; ctx.fillStyle = '#fff'; ctx.fillText(cleanRgb, x, y + 120);
+            }
+        };
+        
+        drawColor(400, 620, targetHex, "TARGET", ansTxt);
+        drawColor(800, 620, inputHex, "YOU", myTxt);
+
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], `retina_survival_${stageIndex}.png`, { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Survival Result', 
+                    text: `Retina - Survival Mode STAGE ${stageIndex}\nScore: ${score}% (GOAL: ${goal}%)\n\n#Retina #色彩感覚 #RGB`
+                }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); link.download = `retina_survival_${stageIndex}.png`; link.href = canvas.toDataURL(); link.click();
             }
         });
     },
