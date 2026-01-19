@@ -877,3 +877,94 @@ html, body {
 /* Disabled Slider in Tutorial */
 .custom-range:disabled { opacity: 0.3; cursor: not-allowed; }
 .custom-range:disabled::-webkit-slider-thumb { background: #555; border-color: #333; }
+
+
+/* ... (既存のスタイル) ... */
+
+/* Versus History (Added) */
+.versus-history-container {
+    width: 100%;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto; /* スマホで横スクロール対応 */
+}
+.vh-grid {
+    display: grid;
+    /* grid-template-columns はJSで動的に設定 (例: 50px 1fr 1fr) */
+    gap: 4px;
+    text-align: center;
+    align-items: stretch;
+    min-width: 280px; /* 極端に潰れないように */
+}
+.vh-cell {
+    padding: 8px 4px;
+    font-size: 0.8rem;
+    color: #ccc;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+}
+/* Header: Player Names */
+.vh-header-name {
+    font-weight: bold;
+    color: #fff;
+    font-size: 0.8rem;
+    border-bottom: none;
+    align-items: flex-end; /* 下揃え */
+    padding-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Header: Win Counts */
+.vh-header-wins {
+    font-family: var(--font-mono);
+    color: var(--accent-gold);
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-top: 0;
+    padding-bottom: 8px;
+    font-size: 0.75rem;
+}
+/* Column 1: Round Info */
+.vh-round-col {
+    font-family: var(--font-mono);
+    color: #888;
+    font-weight: bold;
+    flex-direction: row; 
+    gap: 8px;
+    background: rgba(255,255,255,0.02); /* 少し背景色 */
+}
+/* Player Score Cells */
+.vh-score-col {
+    font-family: var(--font-mono);
+    color: #fff;
+    flex-direction: row; /* スコアの右に色 */
+    gap: 6px;
+    position: relative;
+}
+/* Winner Styling */
+.vh-winner-cell {
+    background: linear-gradient(to bottom, rgba(255, 221, 0, 0.1), transparent);
+    border-radius: 4px;
+}
+.vh-winner-text {
+    color: var(--accent-gold) !important;
+    text-shadow: 0 0 8px rgba(255, 165, 2, 0.6);
+    font-weight: 900;
+}
+/* Color Dot */
+.vh-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.3);
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}

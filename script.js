@@ -1653,8 +1653,13 @@ const VersusGame = {
         document.getElementById('versus-guess-btn').classList.add('hidden');
         document.getElementById('versus-wait-msg').classList.remove('hidden');
     },
+    
+    // ★修正: calcResult に履歴保存機能を追加
     calcResult: function(data) {
-        const q = data.question; let updates = {}; let scores = [];
+        const q = data.question; 
+        let updates = {}; 
+        let scores = [];
+        
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
             if (p.status !== 'empty') {
@@ -1663,10 +1668,37 @@ const VersusGame = {
                 updates[`players/${key}/lastScore`] = roundScore.toFixed(2);
             }
         });
-        if (scores.length > 0) {
-            scores.sort((a, b) => b.score - a.score); const maxScore = scores[0].score;
-            scores.forEach(s => { if (s.score === maxScore) { const currentWins = data.players[s.key].score || 0; updates[`players/${s.key}/score`] = currentWins + 1; } });
-        }
+
+        // 勝者判定
+        scores.sort((a, b) => b.score - a.score); 
+        const maxScore = scores.length > 0 ? scores[0].score : 0;
+        let winners = [];
+
+        scores.forEach(s => { 
+            if (s.score === maxScore) { 
+                const currentWins = data.players[s.key].score || 0; 
+                updates[`players/${s.key}/score`] = currentWins + 1; 
+                winners.push(s.key);
+            } 
+        });
+
+        // 履歴データの作成
+        const historyEntry = {
+            round: data.round,
+            targetHex: q.hex,
+            results: {}
+        };
+        scores.forEach(s => {
+            historyEntry.results[s.key] = {
+                score: s.score.toFixed(2),
+                hex: data.players[s.key].color.hex,
+                isWin: winners.includes(s.key)
+            };
+        });
+        
+        // 履歴をFirebaseに保存
+        updates[`history/${data.round}`] = historyEntry;
+
         updates['state'] = 'finished';
         this.roomRef.update(updates);
     },
@@ -1799,6 +1831,9 @@ const VersusGame = {
             compareHtml += `<div class="multi-compare-item"><p class="multi-compare-label">${Utils.escapeHtml(p.name)}</p><div class="mini-box" style="background:${p.color.hex}"></div><span class="rgb-value-text">${p.color.r},${p.color.g},${p.color.b}</span></div>`; 
         });
         playersCompContainer.innerHTML = compareHtml;
+
+        // ★追加: 履歴の描画
+        this.renderHistory(logicData);
         
         let champions = [];
         if (goal > 0) {
@@ -1867,6 +1902,59 @@ const VersusGame = {
                 this.nextRound(logicData.round + 1); 
             }
         }
+    },
+    // ★追加: 履歴描画用メソッド
+    renderHistory: function(data) {
+        const container = document.getElementById('versus-history');
+        if(!data.history) { container.classList.add('hidden'); return; }
+        container.classList.remove('hidden');
+
+        // 現在アクティブなプレイヤーID (p1, p2...) を取得 (並び順を固定するため)
+        const playerKeys = ['p1','p2','p3','p4'].filter(k => data.players[k].status !== 'empty');
+        
+        let html = `<div class="vh-grid" style="grid-template-columns: 50px repeat(${playerKeys.length}, 1fr);">`;
+
+        // 1行目: プレイヤー名
+        html += `<div class="vh-cell" style="border:none;"></div>`; // 左上空セル
+        playerKeys.forEach(k => {
+            html += `<div class="vh-cell vh-header-name">${Utils.escapeHtml(data.players[k].name)}</div>`;
+        });
+
+        // 2行目: 勝利数
+        html += `<div class="vh-cell" style="border:none;"></div>`; 
+        playerKeys.forEach(k => {
+            html += `<div class="vh-cell vh-header-wins">${data.players[k].score} WIN</div>`;
+        });
+
+        // 3行目以降: 各ラウンドの履歴
+        const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
+        
+        rounds.forEach(rNum => {
+            const h = data.history[rNum];
+            // 左端: ラウンド数 + Target色
+            html += `<div class="vh-cell vh-round-col">
+                        <span>${rNum}</span>
+                        <div class="vh-color-dot" style="background:${h.targetHex};"></div>
+                     </div>`;
+            
+            // 各プレイヤーのスコア + 色
+            playerKeys.forEach(k => {
+                const res = h.results[k];
+                if(res) {
+                    const winClass = res.isWin ? "vh-winner-text" : "";
+                    const cellClass = res.isWin ? "vh-winner-cell" : "";
+                    html += `<div class="vh-cell vh-score-col ${cellClass}">
+                                <span class="${winClass}">${res.score}%</span>
+                                <div class="vh-color-dot" style="background:${res.hex};"></div>
+                             </div>`;
+                } else {
+                    html += `<div class="vh-cell">-</div>`;
+                }
+            });
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
     }
 };
 
