@@ -145,18 +145,6 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     color: #fff;
 }
 
-/* Privacy Button Style (Cyan Blue) - 新規追加 */
-.privacy-link {
-    background: rgba(0, 200, 255, 0.15);
-    border-color: rgba(0, 200, 255, 0.3);
-    color: #00c8ff;
-}
-.privacy-link:hover {
-    background: rgba(0, 200, 255, 0.25);
-    box-shadow: 0 4px 12px rgba(0, 200, 255, 0.3);
-    color: #fff;
-}
-
 /* Copyright */
 .copyright {
     font-size: 0.75rem;
@@ -169,40 +157,116 @@ body { margin: 0; padding: 0; font-family: var(--font-ui); background-color: var
     color: var(--primary-cyan);
 }
 
-/* ★追加: Policy Modal Specifics */
+/* --- Privacy & Policy Styles (Retina Tech Theme) --- */
+
+/* 1. Privacy Button (Footer) - Neon Cyan Style */
+.privacy-link {
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #00e5ff; /* 鮮やかなシアン */
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.05);
+}
+.privacy-link:hover {
+    background: rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    color: #fff;
+    transform: translateY(-2px);
+    border-color: #00e5ff;
+}
+
+/* 2. Policy Modal Box - Glass & Tech Interface */
 .policy-box {
-    max-width: 500px;
+    max-width: 600px; /* 少し幅を広げる */
     width: 90%;
-    text-align: left;
-    max-height: 80vh;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
+    text-align: left;
+    
+    /* 背景とエフェクト */
+    background: linear-gradient(160deg, rgba(20, 30, 48, 0.95), rgba(36, 59, 85, 0.95));
+    border: 1px solid rgba(0, 229, 255, 0.3); /* シアンの境界線 */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 229, 255, 0.2); /* 奥深い影とネオンの光 */
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
 }
+
+/* Modal Header */
+.policy-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.policy-title {
+    margin: 0;
+    color: #00e5ff;
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+/* Modal Content Area */
 .policy-content {
+    padding: 20px 25px;
     overflow-y: auto;
     flex: 1;
-    font-size: 0.8rem;
-    color: #ccc;
-    padding-right: 5px;
-    border-bottom: 1px solid #333;
-    margin-bottom: 10px;
-}
-.policy-content h4 {
-    color: var(--accent-gold);
-    margin: 15px 0 5px;
+    color: #dbe4eb; /* 完全な白ではなく、読みやすい青白系 */
     font-size: 0.9rem;
+    line-height: 1.8;
 }
-.policy-content p {
-    margin: 0 0 10px;
-    line-height: 1.6;
-    font-size: 0.8rem;
-    color: #bbb;
-}
-/* スクロールバーのスタイル（Webkit系） */
-.policy-content::-webkit-scrollbar { width: 6px; }
-.policy-content::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-.policy-content::-webkit-scrollbar-track { background: transparent; }
 
+/* Custom Scrollbar for Policy */
+.policy-content::-webkit-scrollbar { width: 6px; }
+.policy-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+.policy-content::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.3); border-radius: 3px; }
+
+/* Typography inside Content */
+.policy-content h4 {
+    color: #fff;
+    font-family: var(--font-mono);
+    margin: 25px 0 10px;
+    font-size: 1rem;
+    border-left: 3px solid #00e5ff; /* 左にシアンのライン */
+    padding-left: 10px;
+    letter-spacing: 1px;
+}
+.policy-content h4:first-child { margin-top: 0; }
+
+.policy-content p {
+    margin: 0 0 15px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Modal Footer (Close Button Area) */
+.policy-footer {
+    padding: 15px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+}
+
+/* Close Button Styling */
+.btn-policy-close {
+    background: transparent;
+    border: 1px solid rgba(0, 229, 255, 0.5);
+    color: #00e5ff;
+    padding: 8px 24px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    letter-spacing: 2px;
+}
+.btn-policy-close:hover {
+    background: rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+    color: #fff;
+}
 
 /* Game UI */
 .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
