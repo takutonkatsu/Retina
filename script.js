@@ -1937,7 +1937,13 @@ const VersusGame = {
         const winDeclare = document.getElementById('versus-final-winner');
         const btn = document.getElementById('versus-continue-btn'); 
         const exitBtn = document.getElementById('versus-exit-btn');
+        
+        //↓自分で追加
+        const shareBtn = document.getElementById('versus-share-btn');
+        //↑自分で追加
+        
         const contMsg = document.getElementById('versus-continue-status');
+        
 
         if (champions.length > 0) {
             winDeclare.classList.remove('hidden'); 
@@ -1953,10 +1959,16 @@ const VersusGame = {
             
             if(exitBtn) exitBtn.classList.add('hidden');
             
+            // ★追加: 決着時にシェアボタンを表示
+            if(shareBtn) shareBtn.classList.remove('hidden');
+
             contMsg.innerText = "Thanks for playing!";
         } else {
             winDeclare.classList.add('hidden'); 
             if(exitBtn) exitBtn.classList.remove('hidden');
+
+            // ★追加: 未決着時はシェアボタンを隠す
+            if(shareBtn) shareBtn.classList.add('hidden');
 
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
             btn.className = "btn-primary"; 
@@ -2079,6 +2091,159 @@ const VersusGame = {
         html += `</div>`;
         container.innerHTML = html;
     },
+
+    // ★追加: Versus用シェア機能
+    generateShareImage: function() {
+        if(!this.resultData) return;
+        const data = this.resultData;
+
+        // 履歴がない場合は中断
+        if (!data.history) return;
+
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 履歴情報取得 (表示用と同じロジック)
+        const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
+        
+        // ★修正: 有効な最終ラウンドデータを探索
+        let lastRoundData = null;
+        for (let i = rounds.length - 1; i >= 0; i--) {
+            const h = data.history[rounds[i]];
+            if (h) { lastRoundData = h; break; }
+        }
+        if (!lastRoundData) return;
+    
+        const playerKeys = ['p1','p2','p3','p4'].filter(k => lastRoundData.results && lastRoundData.results[k]);
+        const playerCount = playerKeys.length;
+        
+        // 有効なラウンド数だけをカウントしてCanvas高さを決める
+        const validRoundCount = rounds.filter(r => data.history[r]).length;
+
+        // Canvasサイズ計算 (行数に応じて高さを伸ばす)
+        const headerHeight = 280; // タイトル + 表ヘッダー
+        const rowHeight = 60;
+        const footerHeight = 80;
+        const tableHeight = rounds.length * rowHeight;
+        const totalHeight = headerHeight + tableHeight + footerHeight;
+        
+        canvas.width = 1200;
+        canvas.height = Math.max(800, totalHeight); 
+        
+        const grad = ctx.createLinearGradient(0, 0, 1200, canvas.height);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, canvas.height);
+
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125);
+        
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff'; ctx.textAlign = 'right';
+        ctx.fillText("VERSUS MODE", 1140, 125);
+
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+
+        // テーブル描画
+        const tableTop = 220;
+        const tableLeft = 100;
+        const tableWidth = 1000;
+        const colWidth = tableWidth / (playerCount + 1); 
+        
+        // ヘッダー (名前 & Win)
+        ctx.textAlign = 'center';
+        playerKeys.forEach((k, i) => {
+            const cx = tableLeft + colWidth * (i + 1) + colWidth/2;
+            const cy = tableTop + 40;
+
+            // 名前と勝利数の取得
+            let pName = "---"; let pWins = 0;
+            if (lastRoundData.results[k]) {
+                pName = lastRoundData.results[k].name || data.players[k].name;
+                pWins = lastRoundData.results[k].wins !== undefined ? lastRoundData.results[k].wins : (data.players[k].score || 0);
+            }
+
+            ctx.font = 'bold 28px "Inter", sans-serif'; ctx.fillStyle = '#fff';
+            ctx.fillText(pName, cx, cy);
+            
+            ctx.font = 'bold 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700';
+            ctx.fillText(`${pWins} Win`, cx, cy + 35);
+        });
+
+        // 履歴行
+        const tableStartY = tableTop + 100; // ヘッダー分空ける
+        rounds.forEach((rNum, rIdx) => {
+            const h = data.history[rNum];
+
+            // ★修正: h が null/undefined の場合はスキップ (ここが原因でした)
+            if (!h) return;
+
+            const y = tableStartY + rIdx * rowHeight;
+            const midY = y + rowHeight/2 + 10;
+            // Round No + Target
+            const cx0 = tableLeft + colWidth/2;
+            ctx.font = 'bold 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#888';
+            
+            // h.round がなければ rNum を使う
+            ctx.fillText(h.round || rNum, cx0 - 20, midY);
+            
+            ctx.beginPath(); ctx.arc(cx0 + 20, midY - 8, 10, 0, Math.PI*2);
+            // ★修正: ここで h.targetHex を参照するため、h が存在することが必須
+            ctx.fillStyle = h.targetHex; 
+            ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
+
+            // Players
+            playerKeys.forEach((k, pIdx) => {
+                const cx = tableLeft + colWidth * (pIdx + 1) + colWidth/2;
+                const res = h.results[k];
+                if(res) {
+                    ctx.font = res.isWin ? 'bold 28px "JetBrains Mono", monospace' : '24px "JetBrains Mono", monospace';
+                    ctx.fillStyle = res.isWin ? '#ffd700' : '#ccc';
+                    ctx.fillText(`${res.score}%`, cx - 15, midY);
+                    
+                    ctx.beginPath(); ctx.arc(cx + 60, midY - 8, 10, 0, Math.PI*2);
+                    ctx.fillStyle = res.hex; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#555'; ctx.fillText("-", cx, midY);
+                }
+            });
+            
+            ctx.beginPath(); ctx.moveTo(tableLeft, y + rowHeight); ctx.lineTo(tableLeft + tableWidth, y + rowHeight);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+        });
+        // Footer URL
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, canvas.height - 30);
+
+        // テキスト生成
+        const sortedPlayers = playerKeys.map(k => {
+            const res = lastRoundData.results[k];
+            return {
+                name: res.name || data.players[k].name,
+                wins: res.wins !== undefined ? res.wins : (data.players[k].score || 0)
+            };
+        }).sort((a, b) => b.wins - a.wins);
+        
+        let shareText = "Retina - Versus Mode\n";
+        sortedPlayers.forEach((p, idx) => {
+            let rankStr = (idx+1) + (idx===0?"st":idx===1?"nd":idx===2?"rd":"th");
+            shareText += `${rankStr}: ${p.name} (${p.wins} Win)\n`;
+        });
+        shareText += "\n#Retina #色彩感覚 #RGB";
+
+        canvas.toBlob(blob => {
+            const file = new File([blob], "retina_versus.png", { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Versus Result', 
+                    text: shareText
+                }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); link.download = "retina_versus.png"; link.href = canvas.toDataURL(); link.click();
+            }
+        });
+    }
 };
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
