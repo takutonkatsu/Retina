@@ -1180,6 +1180,76 @@ const AnotherGame = {
         });
     },
 
+    generateShareImage: function() {
+        const canvas = document.getElementById('share-canvas');
+        const ctx = canvas.getContext('2d');
+        const max = Number(localStorage.getItem("3index")) || 1;
+        const count = max - 1;
+
+        if (count === 0) return AppController.alert("No colors saved!");
+
+        const cols = 5;
+        const rows = Math.ceil(count / cols);
+        const itemSize = 200; 
+        const headerHeight = 240;
+        const footerHeight = 80;
+        const width = 1200;
+        const height = headerHeight + (rows * itemSize) + footerHeight;
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        const grad = ctx.createLinearGradient(0, 0, width, height);
+        grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
+
+        const img = document.getElementById('source-logo-icon');
+        if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 125); 
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+        ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
+
+        for(let i=1; i<max; i++) {
+            const hex = localStorage.getItem("3input_rgb16"+i);
+            const txt = localStorage.getItem("3input_rgb"+i); 
+            
+            const idx = i - 1;
+            const x = 120 + (idx % cols) * 240; 
+            const y = headerHeight + 100 + Math.floor(idx / cols) * 200;
+
+            ctx.save();
+            ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fillStyle = hex; ctx.fill();
+            ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+            ctx.restore();
+
+            ctx.font = '20px "JetBrains Mono", monospace'; ctx.fillStyle = '#aaa'; ctx.textAlign = 'center';
+            ctx.fillText(txt.replace(/[()]/g, ''), x, y + 100); 
+        }
+
+        ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, height - 30); 
+
+        canvas.toBlob(blob => {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'color_storage_all' 
+                });
+            }
+            const file = new File([blob], "retina_storage.png", { type: "image/png" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ 
+                    files: [file], 
+                    title: 'Retina Color Storage',
+                    text: `Retina - Color Storage\nMy Color Collection\n\n#Retina #色彩感覚 #RGB`
+                }).catch(console.error);
+            } else {
+                const link = document.createElement('a'); link.download = `retina_storage.png`; link.href = canvas.toDataURL(); link.click();
+            }
+        });
+    },
+
     clearSaveData: function() { 
         AppController.confirm("保存した色をすべて消去しますか？", (y)=>{ 
             if(y){ 
@@ -1804,7 +1874,11 @@ const VersusGame = {
         activePlayers.forEach((p) => {
             let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : ''));
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
-            html += `<div class="res-grid-box"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span>${p.me ? '<span class="res-you-badge">(YOU)</span>' : ''}<div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
+            
+            // ★変更: (YOU)バッジを廃止し、p.me なら 'is-me' クラスを追加して背景色を変える
+            const boxClass = p.me ? 'res-grid-box is-me' : 'res-grid-box';
+            
+            html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
         });
         html += '</div>';
         resultContainer.innerHTML = html;

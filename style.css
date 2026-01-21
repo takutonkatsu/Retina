@@ -1016,18 +1016,26 @@ html, body {
     gap: 15px 30px; /* 縦横の間隔 */
     justify-content: center;
     justify-items: center;
-    margin: 0 auto;     /* コンテナ自体を中央に */
-    width: fit-content; /* コンテンツに合わせて幅を決定 */
+    margin: 0 auto;
+    width: fit-content;
     max-width: 100%;
 }
 
-/* リザルトボックスの被り防止 */
+/* リザルトボックス */
 .res-grid-box {
     /* ...既存のプロパティ... */
     justify-content: flex-start; /* 上詰めにする */
     padding-top: 10px;
     min-height: 110px; /* 高さを確保 */
 }
+
+/* ★追加: 自分のボックス用スタイル (YOUバッジの代わり) */
+.res-grid-box.is-me {
+    background: rgba(156, 136, 255, 0.15); /* 紫系の薄い背景 */
+    border: 1px solid rgba(156, 136, 255, 0.4);
+    box-shadow: 0 0 15px rgba(156, 136, 255, 0.1);
+}
+
 .res-grid-rank {
     font-size: 1.1rem; 
     margin-bottom: 5px;
@@ -1036,19 +1044,12 @@ html, body {
 .res-grid-score {
     margin-bottom: 5px; /* スコアと名前の間隔 */
 }
-.res-you-badge {
-    margin-top: auto; /* 一番下に配置 */
-    margin-bottom: 5px;
-    font-size: 0.65rem;
-    background: rgba(255,255,255,0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
-}
+
+/* 削除: .res-you-badge は不要になったので削除 */
 
 /* --- Versus History Grid Lines (Gap Method) --- */
 .vh-grid {
     display: grid;
-    /* 変更: 線を見せるために gap: 1px にし、背景色で線を表現 */
     gap: 1px; 
     background-color: rgba(255, 255, 255, 0.1); /* 線の色 */
     border: 1px solid rgba(255, 255, 255, 0.1); /* 外枠 */
@@ -1057,7 +1058,6 @@ html, body {
     min-width: 280px;
 }
 .vh-cell {
-    /* 変更: セルごとのボーダーを削除し、背景色で塗りつぶす */
     border-bottom: none; 
     background-color: rgba(20, 22, 28, 0.95); /* セルの色（透過少し） */
     padding: 8px 4px;
@@ -1069,12 +1069,23 @@ html, body {
     min-height: 40px;
 }
 .vh-winner-cell {
-    /* 勝者は少し明るい背景 */
     background-color: rgba(255, 221, 0, 0.08);
 }
-/* ヘッダー背景 */
-.vh-header-name, .vh-header-wins {
-    background-color: rgba(30, 35, 45, 1);
+
+/* ★修正: ヘッダー(名前・勝利数)と左列(ラウンド)の背景色を統一 */
+.vh-header-name, .vh-header-wins, .vh-round-col {
+    background-color: rgba(35, 40, 50, 1) !important; /* 少し明るいグレーで統一 */
+    color: #fff;
+}
+.vh-header-name {
+    align-items: flex-end; /* 名前は下揃え */
+    padding-bottom: 4px;
+}
+.vh-header-wins {
+    padding-top: 0;
+    padding-bottom: 8px;
+    color: var(--accent-gold);
+    border-bottom: 1px solid rgba(255,255,255,0.1); /* 区切り線 */
 }
 
 /* --- Daily Color Layout Fix --- */
