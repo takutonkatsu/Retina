@@ -2092,71 +2092,78 @@ const VersusGame = {
         container.innerHTML = html;
     },
 
-    // ★追加: Versus用シェア機能
+    // ... (VersusGame オブジェクト内) ...
+
     generateShareImage: function() {
         if(!this.resultData) return;
         const data = this.resultData;
-
-        // 履歴がない場合は中断
+        
         if (!data.history) return;
 
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
         
-        // 履歴情報取得 (表示用と同じロジック)
         const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
         
-        // ★修正: 有効な最終ラウンドデータを探索
         let lastRoundData = null;
         for (let i = rounds.length - 1; i >= 0; i--) {
             const h = data.history[rounds[i]];
             if (h) { lastRoundData = h; break; }
         }
         if (!lastRoundData) return;
-    
+
         const playerKeys = ['p1','p2','p3','p4'].filter(k => lastRoundData.results && lastRoundData.results[k]);
         const playerCount = playerKeys.length;
-        
-        // 有効なラウンド数だけをカウントしてCanvas高さを決める
+
         const validRoundCount = rounds.filter(r => data.history[r]).length;
 
-        // Canvasサイズ計算 (行数に応じて高さを伸ばす)
-        const headerHeight = 280; // タイトル + 表ヘッダー
-        const rowHeight = 60;
-        const footerHeight = 80;
-        const tableHeight = rounds.length * rowHeight;
-        const totalHeight = headerHeight + tableHeight + footerHeight;
+        // ★修正: レイアウト計算
+        const headerAreaHeight = 340; // ヘッダー領域（タイトル〜表見出しまで）
+        const rowHeight = 70;         // 1行の高さ
+        const footerHeight = 150;     // フッター領域（URL用余白を拡大）
+        const tableContentHeight = validRoundCount * rowHeight;
+        const totalHeight = headerAreaHeight + tableContentHeight + footerHeight;
         
         canvas.width = 1200;
         canvas.height = Math.max(800, totalHeight); 
-        
+
         const grad = ctx.createLinearGradient(0, 0, 1200, canvas.height);
         grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#16213e');
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1200, canvas.height);
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 125);
         
+        // Title
+        ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
+        ctx.fillText("Retina", 180, 110); 
+        
+        // Mode Name
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff'; ctx.textAlign = 'right';
         ctx.fillText("VERSUS MODE", 1140, 125);
 
+        // Separator Line
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
-        // テーブル描画
-        const tableTop = 220;
+        // ★修正: 日時を線の下、左側に配置
+        const now = new Date();
+        const dateStr = now.getFullYear() + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getDate().toString().padStart(2,'0') + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        ctx.font = '500 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'left';
+        ctx.fillText(dateStr, 60, 220); 
+
+        // --- Table ---
+        const tableTop = 260; // 表ヘッダーの開始位置
         const tableLeft = 100;
         const tableWidth = 1000;
         const colWidth = tableWidth / (playerCount + 1); 
         
-        // ヘッダー (名前 & Win)
         ctx.textAlign = 'center';
+        
+        // Header Text (Player Name & Wins)
         playerKeys.forEach((k, i) => {
             const cx = tableLeft + colWidth * (i + 1) + colWidth/2;
-            const cy = tableTop + 40;
-
-            // 名前と勝利数の取得
+            const cy = tableTop; // 名前
+            
             let pName = "---"; let pWins = 0;
             if (lastRoundData.results[k]) {
                 pName = lastRoundData.results[k].name || data.players[k].name;
@@ -2167,32 +2174,29 @@ const VersusGame = {
             ctx.fillText(pName, cx, cy);
             
             ctx.font = 'bold 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700';
-            ctx.fillText(`${pWins} Win`, cx, cy + 35);
+            ctx.fillText(`${pWins} Win`, cx, cy + 35); // 勝利数
         });
 
-        // 履歴行
-        const tableStartY = tableTop + 100; // ヘッダー分空ける
-        rounds.forEach((rNum, rIdx) => {
+        // ★修正: 1行目の開始位置を調整し、ヘッダー(Win)との余白を詰める
+        const tableStartY = tableTop + 50; 
+
+        let drawRowIndex = 0;
+
+        rounds.forEach((rNum) => {
             const h = data.history[rNum];
+            if (!h) return; 
 
-            // ★修正: h が null/undefined の場合はスキップ (ここが原因でした)
-            if (!h) return;
+            const y = tableStartY + drawRowIndex * rowHeight;
+            const midY = y + rowHeight/2 + 5; 
 
-            const y = tableStartY + rIdx * rowHeight;
-            const midY = y + rowHeight/2 + 10;
-            // Round No + Target
             const cx0 = tableLeft + colWidth/2;
             ctx.font = 'bold 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#888';
-            
-            // h.round がなければ rNum を使う
             ctx.fillText(h.round || rNum, cx0 - 20, midY);
             
             ctx.beginPath(); ctx.arc(cx0 + 20, midY - 8, 10, 0, Math.PI*2);
-            // ★修正: ここで h.targetHex を参照するため、h が存在することが必須
             ctx.fillStyle = h.targetHex; 
             ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
 
-            // Players
             playerKeys.forEach((k, pIdx) => {
                 const cx = tableLeft + colWidth * (pIdx + 1) + colWidth/2;
                 const res = h.results[k];
@@ -2208,12 +2212,16 @@ const VersusGame = {
                 }
             });
             
+            // 区切り線
             ctx.beginPath(); ctx.moveTo(tableLeft, y + rowHeight); ctx.lineTo(tableLeft + tableWidth, y + rowHeight);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
+            
+            drawRowIndex++;
         });
-        // Footer URL
+
+        // ★修正: URLの配置 (下端からの距離を確保)
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
-        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, canvas.height - 30);
+        ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, canvas.height - 40);
 
         // テキスト生成
         const sortedPlayers = playerKeys.map(k => {
