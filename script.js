@@ -2120,7 +2120,7 @@ const VersusGame = {
         // ★修正: レイアウト計算
         const headerAreaHeight = 340; // ヘッダー領域（タイトル〜表見出しまで）
         const rowHeight = 70;         // 1行の高さ
-        const footerHeight = 150;     // フッター領域（URL用余白を拡大）
+        const footerHeight = 75;     // フッター領域（URL用余白を拡大）
         const tableContentHeight = validRoundCount * rowHeight;
         const totalHeight = headerAreaHeight + tableContentHeight + footerHeight;
         
