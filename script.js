@@ -1724,12 +1724,13 @@ const VersusGame = {
         document.getElementById('versus-wait-msg').classList.remove('hidden');
     },
     
-    // ★修正: calcResult に履歴保存機能を追加
+    // ★修正: 履歴データに「名前」と「その時点の勝利数」も焼き付けて保存する
     calcResult: function(data) {
         const q = data.question; 
         let updates = {}; 
         let scores = [];
         
+        // スコア計算
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
             if (p.status !== 'empty') {
@@ -1752,23 +1753,31 @@ const VersusGame = {
             } 
         });
 
-        // 履歴データの作成
+        // 履歴エントリー作成
         const historyEntry = {
             round: data.round,
             targetHex: q.hex,
             results: {}
         };
+
         scores.forEach(s => {
-            historyEntry.results[s.key] = {
+            const pKey = s.key;
+            const isWin = winners.includes(pKey);
+            // 現在の勝利数 + 今回勝った場合は1
+            const currentWins = data.players[pKey].score || 0;
+            const newWins = currentWins + (isWin ? 1 : 0);
+
+            historyEntry.results[pKey] = {
                 score: s.score.toFixed(2),
-                hex: data.players[s.key].color.hex,
-                isWin: winners.includes(s.key)
+                hex: data.players[pKey].color.hex,
+                isWin: isWin,
+                // ★追加: 名前と勝利数を履歴自体に保存（退出対策）
+                name: data.players[pKey].name,
+                wins: newWins 
             };
         });
         
-        // 履歴をFirebaseに保存
         updates[`history/${data.round}`] = historyEntry;
-
         updates['state'] = 'finished';
         this.roomRef.update(updates);
     },
@@ -1985,42 +1994,64 @@ const VersusGame = {
         }
     },
     
-    // ★修正: 履歴描画用メソッド (4人時のサイズ調整を追加)
+    // ★修正: 最終ラウンドのデータを基準にして表示列を決める
     renderHistory: function(data) {
         const container = document.getElementById('versus-history');
         if(!data.history) { container.classList.add('hidden'); return; }
         container.classList.remove('hidden');
 
-        // 現在アクティブなプレイヤーID (p1, p2...) を取得
-        const playerKeys = ['p1','p2','p3','p4'].filter(k => data.players[k].status !== 'empty');
+        // 1. ラウンド番号を昇順にソートして取得
+        const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
+        
+        // 2. 「最終ラウンド」のデータを取得
+        const lastRoundNum = rounds[rounds.length - 1];
+        const lastRoundData = data.history[lastRoundNum];
+
+        // 3. 最終ラウンドに参加していたプレイヤーID (p1, p2...) を特定する
+        // (現在の data.players ではなく、過去の results にキーがあるかで判断)
+        const playerKeys = ['p1','p2','p3','p4'].filter(k => {
+            return lastRoundData.results && lastRoundData.results[k];
+        });
+
         const playerCount = playerKeys.length;
 
-        // 4人の場合は専用クラスをつけてCSSでさらにフォントを小さくする
+        // 4人用のCSSクラス適用
         if (playerCount === 4) {
             container.classList.add('players-4-history');
         } else {
             container.classList.remove('players-4-history');
         }
         
-        // ★修正: 左端(Round列)の幅を人数に応じて調整 (4人時は少し狭く: 40px, 通常: 50px)
         const firstColWidth = playerCount === 4 ? "35px" : "50px";
         let html = `<div class="vh-grid" style="grid-template-columns: ${firstColWidth} repeat(${playerCount}, 1fr);">`;
 
-        // 1行目: プレイヤー名
-        html += `<div class="vh-cell" style="border:none;"></div>`;
+        // --- 1行目: プレイヤー名 ---
+        html += `<div class="vh-cell vh-header-name" style="border:none;"></div>`;
         playerKeys.forEach(k => {
-            html += `<div class="vh-cell vh-header-name">${Utils.escapeHtml(data.players[k].name)}</div>`;
+            // 履歴に保存された名前を優先表示 (退出していても表示できる)
+            let pName = "---";
+            if (lastRoundData.results[k] && lastRoundData.results[k].name) {
+                pName = lastRoundData.results[k].name;
+            } else if (data.players[k] && data.players[k].name) {
+                pName = data.players[k].name; // フォールバック
+            }
+            html += `<div class="vh-cell vh-header-name">${Utils.escapeHtml(pName)}</div>`;
         });
 
-        // 2行目: 勝利数
-        html += `<div class="vh-cell" style="border:none;"></div>`; 
+        // --- 2行目: 勝利数 ---
+        html += `<div class="vh-cell vh-header-wins" style="border:none;"></div>`; 
         playerKeys.forEach(k => {
-            html += `<div class="vh-cell vh-header-wins">${data.players[k].score} WIN</div>`;
+            // 履歴に保存された勝利数を優先表示
+            let pWins = 0;
+            if (lastRoundData.results[k] && lastRoundData.results[k].wins !== undefined) {
+                pWins = lastRoundData.results[k].wins;
+            } else if (data.players[k]) {
+                pWins = data.players[k].score || 0;
+            }
+            html += `<div class="vh-cell vh-header-wins">${pWins} WIN</div>`;
         });
 
-        // 3行目以降: 各ラウンドの履歴
-        const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
-        
+        // --- 3行目以降: 各ラウンドの履歴 ---
         rounds.forEach(rNum => {
             const h = data.history[rNum];
             // 左端: ラウンド数 + Target色
@@ -2047,7 +2078,7 @@ const VersusGame = {
 
         html += `</div>`;
         container.innerHTML = html;
-    }
+    },
 };
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
