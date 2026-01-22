@@ -386,7 +386,23 @@ const OriginGame = {
     },
 
     clearSaveData: function() { 
-        AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ if(y){ const keys = Object.keys(localStorage); keys.forEach(k => { if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { localStorage.removeItem(k); } }); localStorage.removeItem("my_1record"); localStorage.removeItem("my_ao5record"); localStorage.removeItem("RGB_Temporary_Hex"); location.reload(); } }) 
+        AppController.confirm("Originモードの記録を削除しますか？", (y)=>{ 
+            if(y){ 
+                const keys = Object.keys(localStorage); 
+                keys.forEach(k => { 
+                    if (k === "index" || k.startsWith("score") || k.startsWith("answer_") || k.startsWith("input_") || k.startsWith("Ao5")) { 
+                        localStorage.removeItem(k); 
+                    } 
+                }); 
+                localStorage.removeItem("my_1record");
+                localStorage.removeItem("my_ao5record"); 
+                localStorage.removeItem("RGB_Temporary_Hex"); 
+                location.reload(); 
+
+                // メニューに戻る
+                AppController.showScreen('menu');
+            } 
+        }) 
     },
     
     generateShareImage: function() {
@@ -845,7 +861,9 @@ const RushGame = {
                 }
                 localStorage.removeItem("rush_index");
                 localStorage.removeItem('rush_best'); 
-                location.reload(); 
+                
+                // メニューに戻る
+                AppController.showScreen('menu');
             } 
         }); 
     }
