@@ -465,23 +465,100 @@ const OriginGame = {
 // Rush Mode (Updated with History & Max Combo Fix)
 const RushGame = {
     timerInterval: null, timeLeft: 60, score: 0, 
-    combo: 0, maxCombo: 0, // ★追加: 最大コンボ記録用
+    combo: 0, maxCombo: 0, 
     questionColor: {}, count: 0, isPlaying: false,
 
     initialize: function() {
-        this.els = { R: document.getElementById('rush-R'), G: document.getElementById('rush-G'), B: document.getElementById('rush-B'), valR: document.getElementById('rush-val-R'), valG: document.getElementById('rush-val-G'), valB: document.getElementById('rush-val-B'), qColor: document.getElementById('rush-question-color'), myColor: document.getElementById('rush-input-color'), timer: document.getElementById('rush-timer'), combo: document.getElementById('rush-combo-display'), currentScore: document.getElementById('rush-current-score') };
+        this.els = { 
+            R: document.getElementById('rush-R'), 
+            G: document.getElementById('rush-G'), 
+            B: document.getElementById('rush-B'), 
+            valR: document.getElementById('rush-val-R'), 
+            valG: document.getElementById('rush-val-G'), 
+            valB: document.getElementById('rush-val-B'), 
+            qColor: document.getElementById('rush-question-color'), 
+            myColor: document.getElementById('rush-input-color'), 
+            timer: document.getElementById('rush-timer'), 
+            combo: document.getElementById('rush-combo-display'), 
+            currentScore: document.getElementById('rush-current-score') 
+        };
         const update = () => this.updateMyColor(); 
         this.els.R.oninput = update; this.els.G.oninput = update; this.els.B.oninput = update;
-        document.getElementById('rush-guess-btn').onclick = () => this.submitGuess();
+        
+        // ボタン設定
+        const guessBtn = document.getElementById('rush-guess-btn');
+        guessBtn.onclick = () => this.submitGuess();
+        
         AppController.showScreen('rush');
-        this.startNewGame();
+
+        // ★変更: ここでいきなり開始せず、UIをリセットしてカウントダウンへ
+        this.resetUI(); 
+        this.startCountdown();
+    },
+
+    // ★追加: UIの見た目を初期状態に戻す（カウントダウン後ろで前の結果が見えないように）
+    resetUI: function() {
+        this.els.timer.innerText = "60.00";
+        this.els.currentScore.innerText = "0";
+        this.els.combo.classList.add('hidden');
+        this.els.qColor.style.backgroundColor = "#000"; // 非表示中は黒にしておく
+        this.els.qColor.querySelector('.overlay-text').style.opacity = 0.2;
+        // スライダーリセット
+        this.els.R.value = 128; this.els.G.value = 128; this.els.B.value = 128;
+        this.els.R.oninput(); // 数値表示更新
+    },
+
+    // ★追加: カウントダウン処理
+    startCountdown: function() {
+        const overlay = document.getElementById('rush-countdown-overlay');
+        const guessBtn = document.getElementById('rush-guess-btn');
+        
+        // 操作ブロック
+        guessBtn.disabled = true;
+        overlay.classList.remove('hidden');
+        
+        let count = 3;
+
+        const runStep = () => {
+            // 画面移動していたら中断
+            if(!document.getElementById('screen-rush').classList.contains('active')) return;
+
+            // アニメーションリセットのためのトリック (void offsetWidth)
+            overlay.classList.remove('count-animate');
+            void overlay.offsetWidth; 
+
+            if (count > 0) {
+                overlay.innerText = count;
+                overlay.classList.add('count-animate');
+                count--;
+                setTimeout(runStep, 1000);
+            } else if (count === 0) {
+                overlay.innerText = "GO!";
+                overlay.classList.add('count-animate');
+                count--;
+                setTimeout(runStep, 1000);
+            } else {
+                // カウントダウン終了
+                overlay.classList.add('hidden');
+                guessBtn.disabled = false;
+                this.startNewGame(); // ここでゲーム開始
+            }
+        };
+        
+        runStep();
     },
 
     startNewGame: function() {
-        this.isPlaying = true; this.timeLeft = 60; this.score = 0; 
-        this.combo = 0; this.maxCombo = 0; // ★リセット
+        this.isPlaying = true; 
+        this.timeLeft = 60; 
+        this.score = 0; 
+        this.combo = 0; 
+        this.maxCombo = 0; 
         this.count = 0;
-        this.setNextColor(); this.updateUI();
+        
+        this.setNextColor(); 
+        this.updateUI();
+        
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.timerInterval = setInterval(() => {
             if (!this.isPlaying) return;

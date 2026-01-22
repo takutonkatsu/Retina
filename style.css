@@ -650,6 +650,33 @@ html, body {
 .popup-time.good { color: var(--accent-green); } .popup-time.bad { color: var(--accent-red); } .popup-time.safe { color: #ccc; font-size: 1.5rem; }
 @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 20% { transform: translateY(-10px) scale(1.1); opacity: 1; } 100% { transform: translateY(-80px) scale(1); opacity: 0; } }
 
+/* Rush Countdown Animation */
+.rush-countdown {
+    position: fixed; /* 画面中央に固定 */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-mono);
+    font-size: 6rem; /* 大きく表示 */
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px var(--accent-rush), 4px 4px 0 #000;
+    z-index: 2000;
+    pointer-events: none; /* クリックを邪魔しない */
+    white-space: nowrap;
+}
+
+/* カウントダウンのアニメーション動作 */
+.count-animate {
+    animation: popCount 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popCount {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
 
 /* Challenge Extras */
 .challenge-status-bar { display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; background: rgba(20, 22, 28, 0.8); padding: 12px; border-radius: 14px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; }
