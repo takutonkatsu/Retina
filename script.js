@@ -834,7 +834,7 @@ const RushGame = {
     },
 
     clearSaveData: function() { 
-        AppController.confirm("Reset Rush Records?", (y) => { 
+        AppController.confirm("Rushモードの記録を削除しますか？", (y) => { 
             if(y) { 
                 // ★修正: 履歴データも全消去
                 const val = Number(localStorage.getItem("rush_index")) || 1;
@@ -1101,7 +1101,30 @@ const SurvivalGame = {
     },
 
     clearSaveData: function() { 
-        AppController.confirm("Survivalモードの記録をリセットしますか？", (y)=>{ if(y) { this.restartGame(); localStorage.removeItem("4stage_record"); } }) 
+        AppController.confirm("Survivalモードの記録を削除しますか？", (y)=>{ 
+            if(y) { 
+                // データを全消去
+                for(let i=1; i<=26; i++) { 
+                    localStorage.removeItem("4stage_number"+i); 
+                    localStorage.removeItem("4answer_rgb16_"+i); 
+                    localStorage.removeItem("4input_rgb16_"+i); 
+                    localStorage.removeItem("4answer_rgb_"+i); 
+                    localStorage.removeItem("4input_rgb_"+i); 
+                }
+                localStorage.setItem("4stage_number", 1); 
+                localStorage.removeItem("4RGB_Temporary_Hex");
+                localStorage.removeItem("4RGB_Temporary_R");
+                localStorage.removeItem("4RGB_Temporary_G");
+                localStorage.removeItem("4RGB_Temporary_B");
+                localStorage.removeItem("4stage_record"); // 最高記録も削除
+
+                // 状態リセット
+                this.currentStage = 1;
+                
+                // メニューに戻る
+                AppController.showScreen('menu'); 
+            } 
+        });
     }
 };
 
