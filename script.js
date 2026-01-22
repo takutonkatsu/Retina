@@ -513,17 +513,18 @@ const RushGame = {
         const overlay = document.getElementById('rush-countdown-overlay');
         const guessBtn = document.getElementById('rush-guess-btn');
         
-        // 操作ブロック
         guessBtn.disabled = true;
         overlay.classList.remove('hidden');
+        
+        // クラス初期化
+        overlay.className = 'rush-countdown'; 
         
         let count = 3;
 
         const runStep = () => {
-            // 画面移動していたら中断
             if(!document.getElementById('screen-rush').classList.contains('active')) return;
 
-            // アニメーションリセットのためのトリック (void offsetWidth)
+            // アニメーション再点火のためのリセット
             overlay.classList.remove('count-animate');
             void overlay.offsetWidth; 
 
@@ -531,17 +532,17 @@ const RushGame = {
                 overlay.innerText = count;
                 overlay.classList.add('count-animate');
                 count--;
-                setTimeout(runStep, 1000);
+                setTimeout(runStep, 1000); // 1秒間隔
             } else if (count === 0) {
                 overlay.innerText = "GO!";
-                overlay.classList.add('count-animate');
+                overlay.classList.add('go-state'); // GO専用スタイル適用
                 count--;
-                setTimeout(runStep, 1000);
+                setTimeout(runStep, 800); // GOは少し短くても良い
             } else {
-                // カウントダウン終了
                 overlay.classList.add('hidden');
+                overlay.classList.remove('go-state');
                 guessBtn.disabled = false;
-                this.startNewGame(); // ここでゲーム開始
+                this.startNewGame(); 
             }
         };
         

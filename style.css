@@ -650,32 +650,79 @@ html, body {
 .popup-time.good { color: var(--accent-green); } .popup-time.bad { color: var(--accent-red); } .popup-time.safe { color: #ccc; font-size: 1.5rem; }
 @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 20% { transform: translateY(-10px) scale(1.1); opacity: 1; } 100% { transform: translateY(-80px) scale(1); opacity: 0; } }
 
-/* Rush Countdown Animation */
+/* Rush Countdown Animation (Minimal & Stylish) */
 .rush-countdown {
-    position: fixed; /* 画面中央に固定 */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-family: var(--font-mono);
-    font-size: 6rem; /* 大きく表示 */
-    font-weight: 900;
+    
+    /* 余計な装飾を排除し、フォントの美しさだけで勝負 */
+    font-family: var(--font-mono); 
+    font-size: 10rem; 
+    font-weight: 700;
     color: #fff;
-    text-shadow: 0 0 30px var(--accent-rush), 4px 4px 0 #000;
+    line-height: 1;
+    
+    /* 初期状態 */
+    opacity: 0;
     z-index: 2000;
-    pointer-events: none; /* クリックを邪魔しない */
-    white-space: nowrap;
+    pointer-events: none;
+    
+    /* 文字間を少し詰めて塊感を出す */
+    letter-spacing: -0.05em;
 }
 
-/* カウントダウンのアニメーション動作 */
+/* 数字（3, 2, 1）のアニメーション */
 .count-animate {
-    animation: popCount 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    /* イージングを調整して「バシッ」と止まる動きに */
+    animation: simpleSnap 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes popCount {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    30% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+/* GO! のスタイル */
+.rush-countdown.go-state {
+    font-size: 12rem; /* さらに大きく */
+    color: var(--accent-rush); /* オレンジ単色 */
+    letter-spacing: -0.02em;
+    animation: goPop 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- Keyframes --- */
+
+/* 奥から手前に「ドンッ」と来て、スッと消える */
+@keyframes simpleSnap {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5); /* 小さい状態から */
+    }
+    30% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1); /* 定位置にスナップ */
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1); /* 一瞬溜める */
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.1); /* 少し拡大しながら消える */
+    }
+}
+
+/* GO! はさらに勢いよく */
+@keyframes goPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.2);
+    }
+    40% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5); /* 大きく広がって消える */
+    }
 }
 
 /* Challenge Extras */
