@@ -1621,9 +1621,6 @@ const VersusGame = {
         const inputId = inputEl.value;
         if(!/^\d{4}$/.test(inputId)) return AppController.alert("Enter 4-digit ID");
         
-        const joinBtn = document.querySelector('#screen-versus-join .main-action-btn');
-        joinBtn.disabled = true;
-
         this.roomId = inputId;
         this.roomRef = db.ref('rooms_versus/' + this.roomId);
         this.currentRound = 0;
@@ -1643,13 +1640,11 @@ const VersusGame = {
                 if (activeCount === 0) {
                     this.roomRef.remove();
                     AppController.alert("Room expired.", () => { AppController.showScreen('versus-menu'); });
-                    joinBtn.disabled = false;
                     return;
                 }
                 
                 if (data.state !== 'waiting') {
-                    AppController.alert("Game already started!", () => { AppController.showScreen('versus-join'); });
-                    joinBtn.disabled = false;
+                    AppController.alert("Game already started!", () => { AppController.showScreen('versus-menu'); });
                     return;
                 }
 
@@ -1657,8 +1652,7 @@ const VersusGame = {
                 else if (data.players.p3.status === 'empty') this.role = 'p3';
                 else if (data.players.p4.status === 'empty') this.role = 'p4';
                 else {
-                    AppController.alert("Room is full (4/4)", () => { AppController.showScreen('versus-join'); });
-                    joinBtn.disabled = false;
+                    AppController.alert("Room is full (4/4)", () => { AppController.showScreen('versus-menu'); });
                     return;
                 }
                 
@@ -1671,33 +1665,33 @@ const VersusGame = {
                 this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting', id: this.myId });
                 this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
                 this.listenToRoom();
-                joinBtn.disabled = false;
+                
             } else { 
-                AppController.alert("Room not found", () => { AppController.showScreen('versus-join'); });
-                joinBtn.disabled = false;
+                AppController.alert("Room not found", () => { AppController.showScreen('versus-menu'); });
             }
-        }).catch(() => {
-            AppController.alert("Connection Error", () => { AppController.showScreen('versus-join'); });
-            joinBtn.disabled = false;
+        }).catch((e) => {
+            console.error(e); // エラー内容をコンソールに出すように変更
+            AppController.alert("Connection Error", () => { AppController.showScreen('versus-menu'); });
         });
     },
 
+    // ロビーでの人の出入りを監視したり、ホスト権限を下位の人に移したりするやつ
     listenToRoom: function() {
         this.roomRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
+            // 1. 自分の場所(p1~p4)が変わっていたら追従 (例: p2 -> p1に昇格)
             if (data.players) {
                 const mySlot = Object.keys(data.players).find(k => data.players[k].id === this.myId);
                 if (mySlot && mySlot !== this.role) {
                     this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
-                    
                     this.role = mySlot;
-                    
                     this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
                 }
             }
 
+            // 2. プレイヤー情報のキャッシュ更新
             if (data.players) {
                 Object.keys(data.players).forEach(key => {
                     const p = data.players[key];
@@ -1707,26 +1701,32 @@ const VersusGame = {
                 });
             }
             
-            const activeKeys = Object.keys(data.players).filter(k => data.players[k].status !== 'empty');
+            // ★修正: ホスト移行ロジック（厳密な順序指定）
+            const allKeys = ['p1', 'p2', 'p3', 'p4'];
+            const activeKeys = allKeys.filter(k => data.players[k] && data.players[k].status !== 'empty');
+            
+            // アクティブな中で一番若い番号の人がリーダー（ホスト）
             const leaderKey = activeKeys[0]; 
             
+            // ロビー待機中で、自分が「アクティブな最上位プレイヤー」なら、部屋の整理整頓（シフト）を行う
             if (data.state === 'waiting' && this.role === leaderKey) {
-                const correctOrderKeys = ['p1', 'p2', 'p3', 'p4'];
                 let needsUpdate = false;
                 let updates = {};
 
-                const currentActivePlayers = correctOrderKeys
-                    .map(k => data.players[k])
-                    .filter(p => p.status !== 'empty');
+                // 詰めるべきプレイヤーデータのリスト
+                const currentActivePlayers = activeKeys.map(k => data.players[k]);
 
-                correctOrderKeys.forEach((key, index) => {
+                allKeys.forEach((key, index) => {
                     if (index < currentActivePlayers.length) {
+                        // ここにいるべきデータ
                         const shouldBeHere = currentActivePlayers[index];
+                        // 違うデータが入っていたら上書き (例: p1にp2のデータを移動)
                         if (data.players[key].id !== shouldBeHere.id) {
                             updates[`players/${key}`] = shouldBeHere;
                             needsUpdate = true;
                         }
                     } else {
+                        // プレイヤーがいないはずの場所が埋まっていたら空にする
                         if (data.players[key].status !== 'empty') {
                             updates[`players/${key}`] = { name: '', score: 0, status: 'empty' };
                             needsUpdate = true;
@@ -1736,12 +1736,11 @@ const VersusGame = {
 
                 if (needsUpdate) {
                     this.roomRef.update(updates);
-                    return; 
+                    return; // 更新後はデータ再取得を待つ
                 }
             }
 
             if (data.state === 'finished') {
-                
                 if (!this.resultData) {
                     let finalData = JSON.parse(JSON.stringify(data));
                     this.resultData = finalData;
@@ -1753,7 +1752,6 @@ const VersusGame = {
             }
 
             let activeCount = activeKeys.length;
-
             const goal = data.maxWins || 5;
             const isGameSet = Object.values(data.players).some(p => p.score >= goal && p.status !== 'empty');
 
@@ -1766,15 +1764,14 @@ const VersusGame = {
                  AppController.showScreen('versus-lobby');
             }
 
-            // ★修正: エンドレスモードの分岐を削除し、常に勝利数を表示
             const goalText = `First to ${data.maxWins} Wins`;
             document.getElementById('versus-lobby-goal').innerText = `GOAL: ${goalText}`;
 
-            ['p1', 'p2', 'p3', 'p4'].forEach((key, i) => {
+            allKeys.forEach((key, i) => {
                 const el = document.getElementById(`versus-${key}-name`);
                 const p = data.players[key];
+                // UI上のホスト表記: p1はHost, p2以降はGuest
                 let label = (key === 'p1') ? "Host" : `Guest ${parseInt(key.charAt(1)) - 1}`;
-                if (key === 'p1') label = "Host";
                 
                 if (p.status !== 'empty') {
                     el.innerText = `${label}: ${p.name}`;
@@ -1788,6 +1785,7 @@ const VersusGame = {
             document.getElementById('versus-status-text').innerText = `Waiting for players (${activeCount}/4)...`;
 
             const startArea = document.getElementById('host-start-area');
+            // p1（ホスト）だけがスタートボタンを見れる
             if (this.role === 'p1' && data.state === 'waiting') {
                 if (activeCount >= 2) startArea.classList.remove('hidden');
                 else startArea.classList.add('hidden');
@@ -2614,7 +2612,7 @@ window.onload = function() {
             
             // アラートを表示
             setTimeout(() => {
-                AppController.alert("Room ID set.\nPlease enter your name to join.");
+                AppController.alert("Please enter your name, then press the JOIN ROOM button.");
             }, 300);
         }
     } else {
