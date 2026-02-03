@@ -1532,19 +1532,15 @@ const VersusGame = {
     cachedPlayers: {}, 
     myId: null,
 
-    // ★追加: メニュー画面から直接Joinするためのラッパー関数
+    // メニュー画面から直接Joinするためのラッパー関数
     joinRoomDirect: function() {
-        // 名前を保存してセット
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
         localStorage.setItem("friend_name", name);
         this.myName = name;
-
-        // ID入力欄が同じ画面にあるのでそのままjoinRoomを呼ぶ
         this.joinRoom();
     },
 
-    // 既存の createRoom も念のため名前取得を確実にするよう修正（既存のままでも動きますが推奨）
     createRoom: function() {
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
@@ -1568,10 +1564,8 @@ const VersusGame = {
         const tempId = Math.floor(1000 + Math.random() * 9000).toString();
         db.ref('rooms_versus/' + tempId).once('value').then(snapshot => {
             if (snapshot.exists()) {
-                // ID conflict, retry
                 this.tryCreateUniqueRoom(maxWins);
             } else {
-                // Available
                 this.roomId = tempId;
                 this.roomRef = db.ref('rooms_versus/' + this.roomId);
                 this.setupNewRoom(maxWins);
@@ -1581,9 +1575,7 @@ const VersusGame = {
 
     setupNewRoom: function(maxWins) {
         if (typeof gtag !== 'undefined') {
-            gtag('event', 'level_start', {
-                'level_name': 'versus_create'
-            });
+            gtag('event', 'level_start', { 'level_name': 'versus_create' });
         }
 
         this.roomRef.set({
@@ -1597,7 +1589,8 @@ const VersusGame = {
             winner: null
         });
         
-        this.roomRef.child('players/p1').onDisconnect().update({ name: '', score: 0, status: 'empty' });
+        // ★修正: 切断時にスコアと名前を消さない（statusのみemptyにする）
+        this.roomRef.child('players/p1').onDisconnect().update({ status: 'empty' });
         
         this.listenToRoom();
         document.getElementById('versus-room-id-display').innerText = this.roomId;
@@ -1657,41 +1650,67 @@ const VersusGame = {
                 }
                 
                 if (typeof gtag !== 'undefined') {
-                    gtag('event', 'join_group', {
-                        'group_id': this.roomId
-                    });
+                    gtag('event', 'join_group', { 'group_id': this.roomId });
                 }
 
                 this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting', id: this.myId });
-                this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
+                // ★修正: 切断時にスコアと名前を消さない
+                this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
                 this.listenToRoom();
                 
             } else { 
                 AppController.alert("Room not found", () => { AppController.showScreen('versus-menu'); });
             }
         }).catch((e) => {
-            console.error(e); // エラー内容をコンソールに出すように変更
+            console.error(e);
             AppController.alert("Connection Error", () => { AppController.showScreen('versus-menu'); });
         });
     },
 
-    // ロビーでの人の出入りを監視したり、ホスト権限を下位の人に移したりするやつ
     listenToRoom: function() {
         this.roomRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
-            // 1. 自分の場所(p1~p4)が変わっていたら追従 (例: p2 -> p1に昇格)
+            // ★追加: 自己修復ロジック (一時的な切断からの復帰処理)
+            if (data.players && data.players[this.role]) {
+                const myP = data.players[this.role];
+                // 自分がこの部屋にいるはず(ID一致)なのに、ステータスがempty(切断扱い)の場合
+                if (myP.id === this.myId && myP.status === 'empty') {
+                    
+                    // 復元するステータスを決定
+                    let recoverStatus = 'waiting';
+                    if (data.state === 'playing') recoverStatus = 'thinking';
+                    
+                    // 名前やスコアが万が一消えていたらキャッシュから復元
+                    let restoreName = myP.name || this.myName;
+                    let restoreScore = (myP.score !== undefined) ? myP.score : ((this.cachedPlayers[this.role] && this.cachedPlayers[this.role].score) || 0);
+
+                    // サーバー上の情報を修復
+                    this.roomRef.child(`players/${this.role}`).update({
+                        name: restoreName,
+                        score: restoreScore,
+                        status: recoverStatus,
+                        id: this.myId
+                    });
+                    
+                    // 切断ハンドラを再登録 (StatusのみEmptyにする)
+                    this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
+                    return; // 更新反映を待つ
+                }
+            }
+
+            // 1. ホスト移行チェック
             if (data.players) {
                 const mySlot = Object.keys(data.players).find(k => data.players[k].id === this.myId);
                 if (mySlot && mySlot !== this.role) {
                     this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
                     this.role = mySlot;
-                    this.roomRef.child(`players/${this.role}`).onDisconnect().update({ name: '', score: 0, status: 'empty' });
+                    // ★修正: 移行時もStatusのみEmptyにする設定で登録
+                    this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
                 }
             }
 
-            // 2. プレイヤー情報のキャッシュ更新
             if (data.players) {
                 Object.keys(data.players).forEach(key => {
                     const p = data.players[key];
@@ -1701,32 +1720,24 @@ const VersusGame = {
                 });
             }
             
-            // ★修正: ホスト移行ロジック（厳密な順序指定）
             const allKeys = ['p1', 'p2', 'p3', 'p4'];
             const activeKeys = allKeys.filter(k => data.players[k] && data.players[k].status !== 'empty');
-            
-            // アクティブな中で一番若い番号の人がリーダー（ホスト）
             const leaderKey = activeKeys[0]; 
             
-            // ロビー待機中で、自分が「アクティブな最上位プレイヤー」なら、部屋の整理整頓（シフト）を行う
+            // 部屋の整理整頓（シフト）
             if (data.state === 'waiting' && this.role === leaderKey) {
                 let needsUpdate = false;
                 let updates = {};
-
-                // 詰めるべきプレイヤーデータのリスト
                 const currentActivePlayers = activeKeys.map(k => data.players[k]);
 
                 allKeys.forEach((key, index) => {
                     if (index < currentActivePlayers.length) {
-                        // ここにいるべきデータ
                         const shouldBeHere = currentActivePlayers[index];
-                        // 違うデータが入っていたら上書き (例: p1にp2のデータを移動)
                         if (data.players[key].id !== shouldBeHere.id) {
                             updates[`players/${key}`] = shouldBeHere;
                             needsUpdate = true;
                         }
                     } else {
-                        // プレイヤーがいないはずの場所が埋まっていたら空にする
                         if (data.players[key].status !== 'empty') {
                             updates[`players/${key}`] = { name: '', score: 0, status: 'empty' };
                             needsUpdate = true;
@@ -1736,7 +1747,7 @@ const VersusGame = {
 
                 if (needsUpdate) {
                     this.roomRef.update(updates);
-                    return; // 更新後はデータ再取得を待つ
+                    return;
                 }
             }
 
@@ -1770,7 +1781,6 @@ const VersusGame = {
             allKeys.forEach((key, i) => {
                 const el = document.getElementById(`versus-${key}-name`);
                 const p = data.players[key];
-                // UI上のホスト表記: p1はHost, p2以降はGuest
                 let label = (key === 'p1') ? "Host" : `Guest ${parseInt(key.charAt(1)) - 1}`;
                 
                 if (p.status !== 'empty') {
@@ -1785,7 +1795,6 @@ const VersusGame = {
             document.getElementById('versus-status-text').innerText = `Waiting for players (${activeCount}/4)...`;
 
             const startArea = document.getElementById('host-start-area');
-            // p1（ホスト）だけがスタートボタンを見れる
             if (this.role === 'p1' && data.state === 'waiting') {
                 if (activeCount >= 2) startArea.classList.remove('hidden');
                 else startArea.classList.add('hidden');
@@ -1852,13 +1861,11 @@ const VersusGame = {
         document.getElementById('versus-wait-msg').classList.remove('hidden');
     },
     
-    // ★修正: 履歴データに「名前」と「その時点の勝利数」も焼き付けて保存する
     calcResult: function(data) {
         const q = data.question; 
         let updates = {}; 
         let scores = [];
         
-        // スコア計算
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
             if (p.status !== 'empty') {
@@ -1868,7 +1875,6 @@ const VersusGame = {
             }
         });
 
-        // 勝者判定
         scores.sort((a, b) => b.score - a.score); 
         const maxScore = scores.length > 0 ? scores[0].score : 0;
         let winners = [];
@@ -1881,7 +1887,6 @@ const VersusGame = {
             } 
         });
 
-        // 履歴エントリー作成
         const historyEntry = {
             round: data.round,
             targetHex: q.hex,
@@ -1891,7 +1896,6 @@ const VersusGame = {
         scores.forEach(s => {
             const pKey = s.key;
             const isWin = winners.includes(pKey);
-            // 現在の勝利数 + 今回勝った場合は1
             const currentWins = data.players[pKey].score || 0;
             const newWins = currentWins + (isWin ? 1 : 0);
 
@@ -1899,7 +1903,6 @@ const VersusGame = {
                 score: s.score.toFixed(2),
                 hex: data.players[pKey].color.hex,
                 isWin: isWin,
-                // ★追加: 名前と勝利数を履歴自体に保存（退出対策）
                 name: data.players[pKey].name,
                 wins: newWins 
             };
@@ -1972,7 +1975,6 @@ const VersusGame = {
         const q = data.question; 
         const myKey = this.role;
         const goal = data.maxWins || 5;
-
         const isGameSet = Object.values(data.players).some(p => p.score >= goal);
         
         let activePlayers = [];
@@ -1981,7 +1983,9 @@ const VersusGame = {
             const liveP = logicData.players ? logicData.players[key] : null;
 
             if (p.name) {
-                if (!isGameSet && (!liveP || liveP.status === 'empty')) {
+                // ★修正: 自分が一時的にemptyになっていても、自分の画面では自分を表示する
+                const isMe = (key === myKey);
+                if (!isGameSet && (!liveP || liveP.status === 'empty') && !isMe) {
                     return;
                 }
 
@@ -1991,7 +1995,7 @@ const VersusGame = {
                     score: p.lastScore || "0.00", 
                     wins: p.score, 
                     color: p.color || {r:0,g:0,b:0,hex:'#000'}, 
-                    me: (key === myKey) 
+                    me: isMe 
                 });
             }
         });
@@ -2006,13 +2010,10 @@ const VersusGame = {
         }
 
         const resultContainer = document.getElementById('versus-result-container');
-        // players-4 クラスなどがCSS側で効くようになる
         let html = `<div class="res-grid-container players-${activePlayers.length}">`;
         activePlayers.forEach((p) => {
             let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : ''));
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
-            
-            // ★変更: (YOU)バッジを廃止し、p.me なら 'is-me' クラスを追加して背景色を変える
             const boxClass = p.me ? 'res-grid-box is-me' : 'res-grid-box';
             
             html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
@@ -2029,14 +2030,11 @@ const VersusGame = {
             else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#fff"; }
         }
 
-        // ★修正: ∞表示のロジックを削除
         document.getElementById('versus-goal-val').innerText = goal;
         document.getElementById('versus-ans-color').style.backgroundColor = q.hex; 
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-        
-        // ★確認・修正: 4人の場合は grid-2x2-force を適用
         if (activePlayers.length === 4) {
             playersCompContainer.className = "multi-players-wrapper grid-2x2-force";
         } else {
@@ -2050,7 +2048,6 @@ const VersusGame = {
         });
         playersCompContainer.innerHTML = compareHtml;
 
-        // ★追加: 履歴の描画
         this.renderHistory(logicData);
         
         let champions = [];
@@ -2065,13 +2062,8 @@ const VersusGame = {
         const winDeclare = document.getElementById('versus-final-winner');
         const btn = document.getElementById('versus-continue-btn'); 
         const exitBtn = document.getElementById('versus-exit-btn');
-        
-        //↓自分で追加
         const shareBtn = document.getElementById('versus-share-btn');
-        //↑自分で追加
-        
         const contMsg = document.getElementById('versus-continue-status');
-        
 
         if (champions.length > 0) {
             winDeclare.classList.remove('hidden'); 
@@ -2086,16 +2078,11 @@ const VersusGame = {
             btn.onclick = () => this.exitRoom();
             
             if(exitBtn) exitBtn.classList.add('hidden');
-            
-            // ★追加: 決着時にシェアボタンを表示
             if(shareBtn) shareBtn.classList.remove('hidden');
-
             contMsg.innerText = "Thanks for playing!";
         } else {
             winDeclare.classList.add('hidden'); 
             if(exitBtn) exitBtn.classList.remove('hidden');
-
-            // ★追加: 未決着時はシェアボタンを隠す
             if(shareBtn) shareBtn.classList.add('hidden');
 
             btn.innerHTML = '<span class="btn-icon">▶</span> CONTINUE';
@@ -2134,28 +2121,20 @@ const VersusGame = {
         }
     },
     
-    // ★修正: 最終ラウンドのデータを基準にして表示列を決める
     renderHistory: function(data) {
         const container = document.getElementById('versus-history');
         if(!data.history) { container.classList.add('hidden'); return; }
         container.classList.remove('hidden');
 
-        // 1. ラウンド番号を昇順にソートして取得
         const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
-        
-        // 2. 「最終ラウンド」のデータを取得
         const lastRoundNum = rounds[rounds.length - 1];
         const lastRoundData = data.history[lastRoundNum];
 
-        // 3. 最終ラウンドに参加していたプレイヤーID (p1, p2...) を特定する
-        // (現在の data.players ではなく、過去の results にキーがあるかで判断)
         const playerKeys = ['p1','p2','p3','p4'].filter(k => {
             return lastRoundData.results && lastRoundData.results[k];
         });
 
         const playerCount = playerKeys.length;
-
-        // 4人用のCSSクラス適用
         if (playerCount === 4) {
             container.classList.add('players-4-history');
         } else {
@@ -2165,23 +2144,19 @@ const VersusGame = {
         const firstColWidth = playerCount === 4 ? "35px" : "50px";
         let html = `<div class="vh-grid" style="grid-template-columns: ${firstColWidth} repeat(${playerCount}, 1fr);">`;
 
-        // --- 1行目: プレイヤー名 ---
         html += `<div class="vh-cell vh-header-name" style="border:none;"></div>`;
         playerKeys.forEach(k => {
-            // 履歴に保存された名前を優先表示 (退出していても表示できる)
             let pName = "---";
             if (lastRoundData.results[k] && lastRoundData.results[k].name) {
                 pName = lastRoundData.results[k].name;
             } else if (data.players[k] && data.players[k].name) {
-                pName = data.players[k].name; // フォールバック
+                pName = data.players[k].name;
             }
             html += `<div class="vh-cell vh-header-name">${Utils.escapeHtml(pName)}</div>`;
         });
 
-        // --- 2行目: 勝利数 ---
         html += `<div class="vh-cell vh-header-wins" style="border:none;"></div>`; 
         playerKeys.forEach(k => {
-            // 履歴に保存された勝利数を優先表示
             let pWins = 0;
             if (lastRoundData.results[k] && lastRoundData.results[k].wins !== undefined) {
                 pWins = lastRoundData.results[k].wins;
@@ -2191,25 +2166,15 @@ const VersusGame = {
             html += `<div class="vh-cell vh-header-wins">${pWins} WIN</div>`;
         });
 
-        // --- 3行目以降: 各ラウンドの履歴 ---
         rounds.forEach(rNum => {
             const h = data.history[rNum];
-            // 左端: ラウンド数 + Target色
-            html += `<div class="vh-cell vh-round-col">
-                        <span>${rNum}</span>
-                        <div class="vh-color-dot" style="background:${h.targetHex};"></div>
-                     </div>`;
-            
-            // 各プレイヤーのスコア + 色
+            html += `<div class="vh-cell vh-round-col"><span>${rNum}</span><div class="vh-color-dot" style="background:${h.targetHex};"></div></div>`;
             playerKeys.forEach(k => {
                 const res = h.results[k];
                 if(res) {
                     const winClass = res.isWin ? "vh-winner-text" : "";
                     const cellClass = res.isWin ? "vh-winner-cell" : "";
-                    html += `<div class="vh-cell vh-score-col ${cellClass}">
-                                <span class="${winClass}">${res.score}%</span>
-                                <div class="vh-color-dot" style="background:${res.hex};"></div>
-                             </div>`;
+                    html += `<div class="vh-cell vh-score-col ${cellClass}"><span class="${winClass}">${res.score}%</span><div class="vh-color-dot" style="background:${res.hex};"></div></div>`;
                 } else {
                     html += `<div class="vh-cell">-</div>`;
                 }
@@ -2220,17 +2185,13 @@ const VersusGame = {
         container.innerHTML = html;
     },
 
-    // ... (VersusGame オブジェクト内) ...
-
     generateShareImage: function() {
         if(!this.resultData) return;
         const data = this.resultData;
-        
         if (!data.history) return;
 
         const canvas = document.getElementById('share-canvas');
         const ctx = canvas.getContext('2d');
-        
         const rounds = Object.keys(data.history).sort((a,b)=>Number(a)-Number(b));
         
         let lastRoundData = null;
@@ -2242,15 +2203,12 @@ const VersusGame = {
 
         const playerKeys = ['p1','p2','p3','p4'].filter(k => lastRoundData.results && lastRoundData.results[k]);
         const playerCount = playerKeys.length;
-
         const validRoundCount = rounds.filter(r => data.history[r]).length;
 
-        // レイアウト設定
         const headerAreaHeight = 380; 
         const rowHeight = 70;
         const footerHeight = 150;
-        const tableContentHeight = validRoundCount * rowHeight;
-        const totalHeight = headerAreaHeight + tableContentHeight + footerHeight;
+        const totalHeight = headerAreaHeight + (validRoundCount * rowHeight) + footerHeight;
         
         canvas.width = 1200;
         canvas.height = Math.max(800, totalHeight); 
@@ -2266,18 +2224,13 @@ const VersusGame = {
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff'; ctx.textAlign = 'right';
         ctx.fillText("VERSUS MODE", 1140, 125);
 
-        
-
-        // Separator Line
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
-        // Date
         const now = new Date();
         const dateStr = now.getFullYear() + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getDate().toString().padStart(2,'0') + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
         ctx.font = '500 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'left';
         ctx.fillText(dateStr, 60, 220); 
 
-        // Rank Calculation
         const playerStats = playerKeys.map(k => {
             const wins = (lastRoundData.results[k] && lastRoundData.results[k].wins !== undefined) 
                          ? lastRoundData.results[k].wins 
@@ -2295,7 +2248,6 @@ const VersusGame = {
             rankMap[p.key] = rank;
         });
 
-        // --- Table Header ---
         const tableTop = 260; 
         const tableLeft = 100;
         const tableWidth = 1000;
@@ -2307,7 +2259,6 @@ const VersusGame = {
             const cx = tableLeft + colWidth * (i + 1) + colWidth/2;
             const rank = rankMap[k];
             
-            // 1行目: 順位
             let rankColor = '#ffffff'; 
             let rankText = rank + "th";
             if (rank === 1) { rankColor = '#ffd700'; rankText = "1st"; }
@@ -2318,24 +2269,20 @@ const VersusGame = {
             ctx.fillStyle = rankColor;
             ctx.fillText(rankText, cx, tableTop); 
 
-            // データ取得
             let pName = "---"; let pWins = 0;
             if (lastRoundData.results[k]) {
                 pName = lastRoundData.results[k].name || data.players[k].name;
                 pWins = lastRoundData.results[k].wins !== undefined ? lastRoundData.results[k].wins : (data.players[k].score || 0);
             }
 
-            // 2行目: 名前
             ctx.font = 'bold 24px "Inter", sans-serif'; ctx.fillStyle = '#fff';
             ctx.fillText(pName, cx, tableTop + 40); 
             
-            // 3行目: 勝利数
             ctx.font = 'bold 24px "JetBrains Mono", monospace'; 
             ctx.fillStyle = '#8b9bb4'; 
             ctx.fillText(`${pWins} Win`, cx, tableTop + 75); 
         });
 
-        // --- Table Body ---
         const tableStartY = tableTop + 100; 
         let drawRowIndex = 0;
 
@@ -2369,18 +2316,15 @@ const VersusGame = {
                 }
             });
             
-            // Line
             ctx.beginPath(); ctx.moveTo(tableLeft, y + rowHeight); ctx.lineTo(tableLeft + tableWidth, y + rowHeight);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
             
             drawRowIndex++;
         });
 
-        // URL
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, canvas.height - 40);
 
-        // Text
         const sortedPlayers = playerKeys.map(k => {
             const res = lastRoundData.results[k];
             return {
