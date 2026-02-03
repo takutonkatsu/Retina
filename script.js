@@ -2236,10 +2236,10 @@ const VersusGame = {
 
         const validRoundCount = rounds.filter(r => data.history[r]).length;
 
-        // ★修正: ヘッダー領域の高さを拡張（順位表示用）
-        const headerAreaHeight = 380; // 340 -> 380
+        // レイアウト設定
+        const headerAreaHeight = 380; 
         const rowHeight = 70;
-        const footerHeight = 75; //フッターとの距離を修正
+        const footerHeight = 150;
         const tableContentHeight = validRoundCount * rowHeight;
         const totalHeight = headerAreaHeight + tableContentHeight + footerHeight;
         
@@ -2255,7 +2255,8 @@ const VersusGame = {
         
         // Title
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        ctx.fillText("Retina", 180, 110); 
+        // ★修正: Y座標を 110 から 125 に変更 (他のモードと統一)
+        ctx.fillText("Retina", 180, 125); 
         
         // Mode Name
         ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff'; ctx.textAlign = 'right';
@@ -2270,18 +2271,15 @@ const VersusGame = {
         ctx.font = '500 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'left';
         ctx.fillText(dateStr, 60, 220); 
 
-        // --- Rank Calculation ---
-        // 各プレイヤーの勝利数を取得してソートし、ランクを決定する
+        // Rank Calculation
         const playerStats = playerKeys.map(k => {
             const wins = (lastRoundData.results[k] && lastRoundData.results[k].wins !== undefined) 
                          ? lastRoundData.results[k].wins 
                          : (data.players[k].score || 0);
             return { key: k, wins: wins };
         });
-        // 勝利数降順でソート
         playerStats.sort((a, b) => b.wins - a.wins);
         
-        // ランクマップ作成 (同率対応)
         const rankMap = {};
         playerStats.forEach((p, idx) => {
             let rank = idx + 1;
@@ -2291,7 +2289,7 @@ const VersusGame = {
             rankMap[p.key] = rank;
         });
 
-        // --- Table ---
+        // --- Table Header ---
         const tableTop = 260; 
         const tableLeft = 100;
         const tableWidth = 1000;
@@ -2299,39 +2297,40 @@ const VersusGame = {
         
         ctx.textAlign = 'center';
         
-        // Header Text (Rank, Name, Wins)
         playerKeys.forEach((k, i) => {
             const cx = tableLeft + colWidth * (i + 1) + colWidth/2;
             const rank = rankMap[k];
             
-            // ★追加: 順位表示 (1位:金, 2位:銀, 3位:銅)
-            let rankColor = '#ffffff'; // 4位以降は白
+            // 1行目: 順位
+            let rankColor = '#ffffff'; 
             let rankText = rank + "th";
             if (rank === 1) { rankColor = '#ffd700'; rankText = "1st"; }
             else if (rank === 2) { rankColor = '#c0c0c0'; rankText = "2nd"; }
             else if (rank === 3) { rankColor = '#cd7f32'; rankText = "3rd"; }
 
-            ctx.font = 'bold 28px "JetBrains Mono", monospace'; // フォントサイズ統一
+            ctx.font = 'bold 28px "JetBrains Mono", monospace'; 
             ctx.fillStyle = rankColor;
-            ctx.fillText(rankText, cx, tableTop); // 1行目: 順位
+            ctx.fillText(rankText, cx, tableTop); 
 
-            // Name & Wins (位置を下にずらす)
+            // データ取得
             let pName = "---"; let pWins = 0;
             if (lastRoundData.results[k]) {
                 pName = lastRoundData.results[k].name || data.players[k].name;
                 pWins = lastRoundData.results[k].wins !== undefined ? lastRoundData.results[k].wins : (data.players[k].score || 0);
             }
 
+            // 2行目: 名前
             ctx.font = 'bold 24px "Inter", sans-serif'; ctx.fillStyle = '#fff';
-            ctx.fillText(pName, cx, tableTop + 40); // 2行目: 名前
+            ctx.fillText(pName, cx, tableTop + 40); 
             
-            ctx.font = 'bold 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4';
-            ctx.fillText(`${pWins} Win`, cx, tableTop + 75); // 3行目: 勝利数
+            // 3行目: 勝利数
+            ctx.font = 'bold 24px "JetBrains Mono", monospace'; 
+            ctx.fillStyle = '#8b9bb4'; 
+            ctx.fillText(`${pWins} Win`, cx, tableTop + 75); 
         });
 
-        // ★修正: 表の開始位置をさらに下に調整 (ヘッダーが増えたため)
+        // --- Table Body ---
         const tableStartY = tableTop + 100; 
-
         let drawRowIndex = 0;
 
         rounds.forEach((rNum) => {
@@ -2364,7 +2363,7 @@ const VersusGame = {
                 }
             });
             
-            // 区切り線
+            // Line
             ctx.beginPath(); ctx.moveTo(tableLeft, y + rowHeight); ctx.lineTo(tableLeft + tableWidth, y + rowHeight);
             ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke();
             
@@ -2375,7 +2374,7 @@ const VersusGame = {
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, canvas.height - 40);
 
-        // Share Text Generation
+        // Text
         const sortedPlayers = playerKeys.map(k => {
             const res = lastRoundData.results[k];
             return {
