@@ -2252,15 +2252,12 @@ const VersusGame = {
 
         const img = document.getElementById('source-logo-icon');
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
-        
-        // Title
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
-        // ★修正: Y座標を 110 から 125 に変更 (他のモードと統一)
         ctx.fillText("Retina", 180, 125); 
-        
-        // Mode Name
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff'; ctx.textAlign = 'right';
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#9c88ff';
         ctx.fillText("VERSUS MODE", 1140, 125);
+
+       
 
         // Separator Line
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
