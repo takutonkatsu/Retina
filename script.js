@@ -1532,13 +1532,24 @@ const VersusGame = {
     cachedPlayers: {}, 
     myId: null,
 
+    // ★追加: メニュー画面から直接Joinするためのラッパー関数
+    joinRoomDirect: function() {
+        // 名前を保存してセット
+        const name = document.getElementById('versus-name-input').value.trim();
+        if(!name) return AppController.alert("Please enter your name.");
+        localStorage.setItem("friend_name", name);
+        this.myName = name;
+
+        // ID入力欄が同じ画面にあるのでそのままjoinRoomを呼ぶ
+        this.joinRoom();
+    },
+
+    // 既存の createRoom も念のため名前取得を確実にするよう修正（既存のままでも動きますが推奨）
     createRoom: function() {
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
         
         let maxWins = parseInt(document.getElementById('versus-goal-input').value);
-        
-        // ★修正: 1未満や無効な値は「5」に、99超は「99」に強制
         if (isNaN(maxWins) || maxWins < 1) maxWins = 5;
         if (maxWins > 99) maxWins = 99;
 
@@ -2580,12 +2591,31 @@ window.onload = function() {
         if (savedName) {
             VersusGame.inviteRoomId = roomParam;
             VersusGame.myName = savedName;
-            AppController.showScreen('versus-join');
+            
+            // ★変更: メニュー画面へ飛ばして自動入力＆Join待機状態にするのが自然ですが、
+            // 元の挙動(ID入力済みのJoin画面へ)に近い形にするなら、
+            // 今回のUI改修でID入力欄はMenuにあるため、Menuを表示してIDをセットし、自動Joinを試みる形にします。
+            
+            AppController.showScreen('versus-menu');
             document.getElementById('versus-room-input').value = roomParam;
-            VersusGame.joinRoom();
+            document.getElementById('versus-name-input').value = savedName;
+            
+            // 名前があるので自動でJoinを試みる（またはユーザーにボタンを押させる）
+            // ここでは自動Joinさせます
+            VersusGame.joinRoomDirect(); 
+            
         } else {
+            // ★変更: 名前がない場合
             VersusGame.inviteRoomId = roomParam;
             AppController.showScreen('versus-menu');
+            
+            // ID欄に招待コードを入力
+            document.getElementById('versus-room-input').value = roomParam;
+            
+            // アラートを表示
+            setTimeout(() => {
+                AppController.alert("Room ID set.\nPlease enter your name to join.");
+            }, 300);
         }
     } else {
         const savedScreen = localStorage.getItem('current_screen');
@@ -2610,3 +2640,13 @@ window.onload = function() {
         }
     }
 };
+
+// GOAL数の調整ボタン用関数
+function adjustGoal(delta) {
+    const input = document.getElementById('versus-goal-input');
+    let val = parseInt(input.value) || 5;
+    val += delta;
+    if(val < 1) val = 1;
+    if(val > 99) val = 99;
+    input.value = val;
+}
