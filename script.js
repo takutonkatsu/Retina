@@ -1532,7 +1532,6 @@ const VersusGame = {
     cachedPlayers: {}, 
     myId: null,
 
-    // メニュー画面から直接Joinするためのラッパー関数
     joinRoomDirect: function() {
         const name = document.getElementById('versus-name-input').value.trim();
         if(!name) return AppController.alert("Please enter your name.");
@@ -1589,24 +1588,11 @@ const VersusGame = {
             winner: null
         });
         
-        // ★修正: 切断時にスコアと名前を消さない（statusのみemptyにする）
         this.roomRef.child('players/p1').onDisconnect().update({ status: 'empty' });
         
         this.listenToRoom();
         document.getElementById('versus-room-id-display').innerText = this.roomId;
         AppController.showScreen('versus-lobby');
-    },
-
-    displayJoinScreen: function() {
-        const name = document.getElementById('versus-name-input').value.trim();
-        if(!name) return AppController.alert("Please enter your name.");
-        localStorage.setItem("friend_name", name); this.myName = name;
-        AppController.showScreen('versus-join');
-        
-        if (this.inviteRoomId) {
-            document.getElementById('versus-room-input').value = this.inviteRoomId;
-            this.inviteRoomId = null;
-        }
     },
 
     joinRoom: function() {
@@ -1654,7 +1640,6 @@ const VersusGame = {
                 }
 
                 this.roomRef.child(`players/${this.role}`).update({ name: this.myName, score: 0, status: 'waiting', id: this.myId });
-                // ★修正: 切断時にスコアと名前を消さない
                 this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
                 this.listenToRoom();
                 
@@ -1672,21 +1657,20 @@ const VersusGame = {
             const data = snapshot.val();
             if(!data) { AppController.alert("Connection lost / Room closed", () => { this.exitRoom(true); }); return; }
 
-            // ★追加: 自己修復ロジック (一時的な切断からの復帰処理)
+            // ★自己修復ロジック強化
             if (data.players && data.players[this.role]) {
                 const myP = data.players[this.role];
-                // 自分がこの部屋にいるはず(ID一致)なのに、ステータスがempty(切断扱い)の場合
                 if (myP.id === this.myId && myP.status === 'empty') {
-                    
-                    // 復元するステータスを決定
                     let recoverStatus = 'waiting';
-                    if (data.state === 'playing') recoverStatus = 'thinking';
+                    // ゲーム中ならThinkingに戻すが、既に回答データ(Color)があるならGuessedに戻す
+                    if (data.state === 'playing') {
+                        if (myP.color) recoverStatus = 'guessed';
+                        else recoverStatus = 'thinking';
+                    }
                     
-                    // 名前やスコアが万が一消えていたらキャッシュから復元
                     let restoreName = myP.name || this.myName;
                     let restoreScore = (myP.score !== undefined) ? myP.score : ((this.cachedPlayers[this.role] && this.cachedPlayers[this.role].score) || 0);
 
-                    // サーバー上の情報を修復
                     this.roomRef.child(`players/${this.role}`).update({
                         name: restoreName,
                         score: restoreScore,
@@ -1694,19 +1678,16 @@ const VersusGame = {
                         id: this.myId
                     });
                     
-                    // 切断ハンドラを再登録 (StatusのみEmptyにする)
                     this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
-                    return; // 更新反映を待つ
+                    return;
                 }
             }
 
-            // 1. ホスト移行チェック
             if (data.players) {
                 const mySlot = Object.keys(data.players).find(k => data.players[k].id === this.myId);
                 if (mySlot && mySlot !== this.role) {
                     this.roomRef.child(`players/${this.role}`).onDisconnect().cancel();
                     this.role = mySlot;
-                    // ★修正: 移行時もStatusのみEmptyにする設定で登録
                     this.roomRef.child(`players/${this.role}`).onDisconnect().update({ status: 'empty' });
                 }
             }
@@ -1724,7 +1705,6 @@ const VersusGame = {
             const activeKeys = allKeys.filter(k => data.players[k] && data.players[k].status !== 'empty');
             const leaderKey = activeKeys[0]; 
             
-            // 部屋の整理整頓（シフト）
             if (data.state === 'waiting' && this.role === leaderKey) {
                 let needsUpdate = false;
                 let updates = {};
@@ -1810,8 +1790,15 @@ const VersusGame = {
                 }
 
                 let waitingCount = 0;
-                activeKeys.forEach(k => {
-                    if (data.players[k].status !== 'guessed') waitingCount++;
+                // ★修正: emptyではない、またはemptyでもcolorがある(=回答済みで落ちた)場合は待機対象から外す
+                Object.keys(data.players).forEach(k => {
+                    const p = data.players[k];
+                    // emptyかつcolor無し(完全に居ない)場合はカウントしない
+                    // emptyでもcolor有り(回答後切断)は「回答済み」とみなす
+                    // statusがguessedならOK
+                    if (p.status !== 'empty' && p.status !== 'guessed') {
+                        waitingCount++;
+                    }
                 });
                 
                 const statusEl = document.getElementById('versus-opponent-status');
@@ -1868,7 +1855,8 @@ const VersusGame = {
         
         Object.keys(data.players).forEach(key => {
             const p = data.players[key];
-            if (p.status !== 'empty') {
+            // ★修正: statusがemptyでも、color情報(回答)があれば集計に含める
+            if (p.status !== 'empty' || (p.color && p.name)) {
                 const roundScore = Utils.calculateScoreValue(q, p.color);
                 scores.push({ key: key, score: roundScore });
                 updates[`players/${key}/lastScore`] = roundScore.toFixed(2);
@@ -1950,7 +1938,14 @@ const VersusGame = {
             updates['round'] = nextRoundNum; 
             updates['state'] = 'playing'; 
             Object.keys(d.players).forEach(key => { 
-                if (d.players[key].status !== 'empty') { updates[`players/${key}/status`] = 'thinking'; } 
+                // ★修正: ラウンド開始時にcolorとlastScoreをリセット
+                updates[`players/${key}/color`] = null; 
+                updates[`players/${key}/lastScore`] = null;
+
+                // ★修正: emptyでも名前がある(＝さっきまで居た)プレイヤーは強制参加
+                if (d.players[key].status !== 'empty' || (d.players[key].name && d.players[key].name !== '')) { 
+                    updates[`players/${key}/status`] = 'thinking'; 
+                } 
             }); 
             this.roomRef.update(updates); 
         }); 
@@ -1983,9 +1978,11 @@ const VersusGame = {
             const liveP = logicData.players ? logicData.players[key] : null;
 
             if (p.name) {
-                // ★修正: 自分が一時的にemptyになっていても、自分の画面では自分を表示する
                 const isMe = (key === myKey);
-                if (!isGameSet && (!liveP || liveP.status === 'empty') && !isMe) {
+                // ★修正: このラウンドのスコア(lastScore)があれば、現在切断中(empty)でも表示する
+                const hasScore = (p.lastScore !== undefined);
+                
+                if (!isGameSet && !hasScore && (!liveP || liveP.status === 'empty') && !isMe) {
                     return;
                 }
 
