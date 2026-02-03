@@ -1938,12 +1938,14 @@ const VersusGame = {
             updates['round'] = nextRoundNum; 
             updates['state'] = 'playing'; 
             Object.keys(d.players).forEach(key => { 
-                // ★修正: ラウンド開始時にcolorとlastScoreをリセット
+                // カラーとスコアのリセット
                 updates[`players/${key}/color`] = null; 
                 updates[`players/${key}/lastScore`] = null;
 
-                // ★修正: emptyでも名前がある(＝さっきまで居た)プレイヤーは強制参加
-                if (d.players[key].status !== 'empty' || (d.players[key].name && d.players[key].name !== '')) { 
+                // ★修正: 切断中(empty)のプレイヤーは無理に参加させず、emptyのままにする。
+                // これにより、対戦画面での「Thinking...」人数が今いるメンバーだけで計算されるようになります。
+                // もし遅れて復帰した場合は、自己修復機能によって自動的に 'thinking' に戻り、人数が増えます。
+                if (d.players[key].status !== 'empty') { 
                     updates[`players/${key}/status`] = 'thinking'; 
                 } 
             }); 
