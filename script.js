@@ -172,6 +172,13 @@ const Utils = {
                 "'": '&#039;'
             }[m];
         });
+    },
+
+    // ★追加: バイブレーション実行関数 (15msの軽い振動)
+    triggerHaptic: function() {
+        if (navigator.vibrate) {
+            navigator.vibrate(15);
+        }
     }
 };
 
@@ -261,6 +268,7 @@ const OriginGame = {
     },
     proceedToNextColor: function() { localStorage.removeItem("RGB_Temporary_Hex"); this.startNewRound(); AppController.showScreen('origin'); },
     submitGuess: function() {
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value); const q = this.questionColor;
         const score = Utils.calculateScore(q, {r, g, b});
         let val = Number(localStorage.getItem("index")) || 1;
@@ -604,6 +612,7 @@ const RushGame = {
 
     submitGuess: function() {
         if (!this.isPlaying) return;
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         const acc = Utils.calculateScoreValue(this.questionColor, {r, g, b}); 
         let timeDelta = 0; let isBad = false;
@@ -892,6 +901,7 @@ const SurvivalGame = {
         document.getElementById('survival-new-record').classList.add('hidden');
     },
     submitGuess: function() {
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value); const q = this.questionColor;
         const score = Utils.calculateScore(q, {r, g, b});
         const target = this.aimScores[this.currentStage - 1]; 
@@ -1161,6 +1171,7 @@ const AnotherGame = {
         this.els.myColor.style.backgroundColor = Utils.rgbToHex(r, g, b);
     },
     saveColorToStorage: function() {
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         const hex = Utils.rgbToHex(r, g, b);
         let val = Number(localStorage.getItem("3index")) || 1;
@@ -1411,6 +1422,7 @@ const DailyGame = {
     },
 
     submitGuess: function() {
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
         const score = Utils.calculateScore(this.targetColor, {r, g, b});
         localStorage.setItem("daily_score_" + this.dateStr, score);
@@ -1842,6 +1854,7 @@ const VersusGame = {
         document.getElementById('versus-val-R').innerText = r; document.getElementById('versus-val-G').innerText = g; document.getElementById('versus-val-B').innerText = b;
     },
     submitGuess: function() {
+        Utils.triggerHaptic(); // ★追加
         const r = parseInt(document.getElementById('versus-R').value); const g = parseInt(document.getElementById('versus-G').value); const b = parseInt(document.getElementById('versus-B').value);
         this.roomRef.child(`players/${this.role}`).update({ color: {r, g, b, hex: Utils.rgbToHex(r,g,b)}, status: 'guessed' });
         document.getElementById('versus-guess-btn').classList.add('hidden');
