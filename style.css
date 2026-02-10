@@ -124,7 +124,12 @@ html, body {
 }
 .game-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); background: rgba(30, 32, 40, 0.8); border-color: rgba(255, 255, 255, 0.2); }
 .game-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-.card-origin::before { background: var(--accent-red); } .card-rush::before { background: var(--accent-green); } .card-survival::before { background: var(--accent-blue); } .card-versus::before { background: var(--primary-multi); }
+.card-origin::before { background: var(--accent-red); } 
+.card-rush::before { background: var(--accent-green); } 
+.card-survival::before { background: var(--accent-blue); } 
+.card-versus::before { background: var(--primary-multi); }
+/* ★追加: Color Storage用カードのアクセントカラー */
+.card-storage::before { background: var(--accent-storage); }
 .card-icon { font-size: 1.8rem; margin-right: 15px; }
 .card-content h3 { margin: 0; font-size: 1.1rem; }
 .card-content p { margin: 4px 0 0; font-size: 0.75rem; color: var(--text-muted); }
@@ -137,7 +142,13 @@ html, body {
 .about-section { border-top: 1px solid var(--panel-border); padding-top: 25px; margin-top: 20px; }
 .about-title { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; margin-bottom: 12px; text-align: center; letter-spacing: 1px; }
 .about-card { background: var(--panel-glass); border: 1px solid var(--panel-border); border-radius: 12px; padding: 15px; margin-bottom: 12px; position: relative; overflow: hidden; }
-.about-card.about-rush { border-left: 4px solid var(--accent-green); } .about-card.about-origin { border-left: 4px solid var(--accent-red); } .about-card.about-survival { border-left: 4px solid var(--accent-blue); } .about-card.about-versus { border-left: 4px solid var(--primary-multi); }
+.about-card.about-rush { border-left: 4px solid var(--accent-green); } 
+.about-card.about-origin { border-left: 4px solid var(--accent-red); } 
+.about-card.about-survival { border-left: 4px solid var(--accent-blue); } 
+.about-card.about-versus { border-left: 4px solid var(--primary-multi); }
+/* ★追加: DailyとStorageの説明文用ボーダーカラー */
+.about-card.about-daily { border-left: 4px solid var(--accent-daily); }
+.about-card.about-storage { border-left: 4px solid var(--accent-storage); }
 .about-card h4 { margin: 0 0 6px 0; font-size: 1rem; color: #fff; }
 .about-card p { margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
 

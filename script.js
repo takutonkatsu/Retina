@@ -211,6 +211,16 @@ const MenuLogic = {
         const stageElem = document.getElementById("menu-survival-record");
         if(stageElem) { stageElem.innerHTML = stageRec ? `Max Stage: <span>${stageRec}</span>` : "Start: Stage 1"; }
 
+        // ★追加: Color Storageの保存数をバッジに表示 (もしIDを追加した場合)
+        // 今回のindex.html修正ではIDを振っていませんが、
+        // 将来的に <div class="record-badge" id="menu-storage-record"> とした場合に備えて
+        const storageIndex = Number(localStorage.getItem("3index")) || 1;
+        const savedCount = storageIndex - 1;
+        const storageRecElem = document.getElementById("menu-storage-record");
+        if(storageRecElem) {
+            storageRecElem.innerText = `Saved: ${savedCount}`;
+        }
+
         const ao5Rec = Number(localStorage.getItem("my_ao5record")) || 0;
         const logoEl = document.getElementById("app-logo");
         const iconHtml = `<img src="Retina_icon.png" alt="icon" class="logo-icon" id="source-logo-icon">`;
