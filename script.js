@@ -179,7 +179,22 @@ const Utils = {
         if (navigator.vibrate) {
             navigator.vibrate(15);
         }
-    }
+    },
+
+    // ★追加: 2つの日付文字列(YYYYMMDD)の差分日数を計算
+    getDaysDiff: function(dateStr1, dateStr2) {
+        // YYYYMMDD -> Date Object
+        const parseDate = (str) => {
+            const y = parseInt(str.substring(0, 4));
+            const m = parseInt(str.substring(4, 6)) - 1;
+            const d = parseInt(str.substring(6, 8));
+            return new Date(y, m, d);
+        };
+        const d1 = parseDate(dateStr1);
+        const d2 = parseDate(dateStr2);
+        const diffTime = Math.abs(d2 - d1);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    },
 };
 
 const MenuLogic = {
@@ -214,6 +229,27 @@ const MenuLogic = {
         const todayStr = Utils.getTodayString();
         document.getElementById('menu-daily-date').innerText = Utils.getFormattedDate();
         
+        // ★追加: ストリーク表示ロジック
+        const streakCount = Number(localStorage.getItem("daily_streak_count")) || 0;
+        const lastPlayed = localStorage.getItem("daily_last_played");
+        const streakBadge = document.getElementById('menu-daily-streak');
+        
+        if (streakBadge) {
+            if (streakCount > 0 && lastPlayed) {
+                const diff = Utils.getDaysDiff(lastPlayed, todayStr);
+                // 最終プレイが「今日(0)」か「昨日(1)」ならストリーク継続中として表示
+                if (diff <= 1) {
+                    streakBadge.innerText = `🔥 ${streakCount} Day${streakCount > 1 ? 's' : ''}`;
+                    streakBadge.classList.remove('hidden');
+                } else {
+                    // 2日以上空いている場合は表示しない（プレイ後にリセットされる）
+                    streakBadge.classList.add('hidden');
+                }
+            } else {
+                streakBadge.classList.add('hidden');
+            }
+        }
+
         const dailyColor = Utils.generateDailyColor(todayStr);
         const previewEl = document.getElementById('menu-daily-color-preview');
         if(previewEl) {
@@ -1393,8 +1429,10 @@ const AnotherGame = {
 };
 
 // Daily Game Mode
+// Daily Game Mode
 const DailyGame = {
     targetColor: {}, dateStr: "", timerInterval: null, els:{},
+    
     initialize: function() {
         if(this.timerInterval) clearInterval(this.timerInterval);
         this.els = { R: document.getElementById('daily-R'), G: document.getElementById('daily-G'), B: document.getElementById('daily-B'), valR: document.getElementById('daily-val-R'), valG: document.getElementById('daily-val-G'), valB: document.getElementById('daily-val-B'), qColor: document.getElementById('daily-question-color') };
@@ -1422,12 +1460,50 @@ const DailyGame = {
     },
 
     submitGuess: function() {
-        Utils.triggerHaptic(); // ★追加
+        Utils.triggerHaptic(); // バイブレーション
         const r = parseInt(this.els.R.value); const g = parseInt(this.els.G.value); const b = parseInt(this.els.B.value);
+        const inputHex = Utils.rgbToHex(r, g, b);
         const score = Utils.calculateScore(this.targetColor, {r, g, b});
+        
+        // --- ★追加: ストリーク処理 ---
+        const lastPlayed = localStorage.getItem("daily_last_played");
+        let streakCount = Number(localStorage.getItem("daily_streak_count")) || 0;
+        let streakLog = JSON.parse(localStorage.getItem("daily_streak_log")) || [];
+
+        let diff = 100; // 初期値(大)
+        if (lastPlayed) {
+            diff = Utils.getDaysDiff(lastPlayed, this.dateStr);
+        }
+
+        if (lastPlayed === this.dateStr) {
+            // 今日すでにプレイ済み（通常ここには来ないが念のため）
+        } else if (diff === 1) {
+            // 昨日プレイしている -> 継続！
+            streakCount++;
+        } else {
+            // 初プレイ または 2日以上空いた -> リセット
+            streakCount = 1;
+            streakLog = []; // 過去ログ消失
+        }
+
+        // ログに今日の記録を追加
+        streakLog.unshift({
+            date: Utils.getFormattedDate(),
+            score: score,
+            targetHex: this.targetColor.hex,
+            inputHex: inputHex
+        });
+
+        // データ保存
         localStorage.setItem("daily_score_" + this.dateStr, score);
-        localStorage.setItem("daily_input_hex_" + this.dateStr, Utils.rgbToHex(r, g, b));
-        this.displayResult(score, this.targetColor, Utils.rgbToHex(r, g, b));
+        localStorage.setItem("daily_input_hex_" + this.dateStr, inputHex);
+        
+        localStorage.setItem("daily_last_played", this.dateStr);
+        localStorage.setItem("daily_streak_count", streakCount);
+        localStorage.setItem("daily_streak_log", JSON.stringify(streakLog));
+        // ---------------------------
+
+        this.displayResult(score, this.targetColor, inputHex);
     },
 
     displayResult: function(score, target, inputHex) {
@@ -1446,7 +1522,48 @@ const DailyGame = {
         document.getElementById('daily-ans-text').innerText = `${target.r}, ${target.g}, ${target.b}`; 
         document.getElementById('daily-your-color').style.backgroundColor = inputHex;
         document.getElementById('daily-your-text').innerText = Utils.hexToRgbString(inputHex);
+        
+        // ★追加: 履歴描画
+        this.renderStreakHistory();
+        
         this.startTimer();
+    },
+
+    // ★追加: 履歴描画関数
+    renderStreakHistory: function() {
+        const container = document.getElementById('daily-streak-history');
+        const streakCount = Number(localStorage.getItem("daily_streak_count")) || 1;
+        const streakLog = JSON.parse(localStorage.getItem("daily_streak_log")) || [];
+        
+        if (streakLog.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        
+        let html = `<div class="daily-history-header"><span>🔥 Current Streak</span><span>${streakCount} Days</span></div>`;
+        
+        streakLog.forEach((item, index) => {
+            // 最新（今日）の記録のみハイライト
+            const highlightClass = index === 0 ? "today-highlight" : "";
+            
+            html += `
+            <div class="daily-history-item ${highlightClass}">
+                <div class="daily-history-date">${item.date}</div>
+                <div class="history-colors">
+                    <div class="color-row">
+                        <span class="chip-xs" style="background:${item.targetHex}"></span> Target
+                    </div>
+                    <div class="color-row">
+                        <span class="chip-xs" style="background:${item.inputHex}"></span> You
+                    </div>
+                </div>
+                <div class="history-score-val" style="font-size:0.9rem;">${item.score}%</div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
     },
 
     startTimer: function() {
@@ -1473,6 +1590,9 @@ const DailyGame = {
         const targetHex = this.targetColor.hex;
         const savedInputHex = localStorage.getItem("daily_input_hex_" + this.dateStr) || "#000000";
         
+        // ★追加: ストリーク数を取得
+        const streakCount = localStorage.getItem("daily_streak_count") || 1;
+        
         canvas.width = 1200;
         canvas.height = 800;
 
@@ -1491,20 +1611,26 @@ const DailyGame = {
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
+        // 日付
         ctx.font = '700 48px "JetBrains Mono", monospace'; 
         ctx.fillStyle = '#eee'; 
         ctx.textAlign = 'center'; 
         ctx.fillText(dateText, 600, 260); 
 
-        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 440);
+        // ストリーク表示 (画像に追加)
+        ctx.font = 'bold 36px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#ff9f43'; // オレンジ
+        ctx.fillText(`🔥 ${streakCount} Day Streak`, 600, 310);
+
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 480); // 少し下にずらした
         
         const drawColor = (x, y, color, label) => {
             ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
             ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
             ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
         };
-        drawColor(400, 620, targetHex, "TARGET");
-        drawColor(800, 620, savedInputHex, "YOU");
+        drawColor(400, 660, targetHex, "TARGET");
+        drawColor(800, 660, savedInputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
@@ -1521,7 +1647,8 @@ const DailyGame = {
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Daily Result', 
-                    text: `Retina - Daily Color ${dateText}\nScore: ${score}\n\n#Retina #色彩感覚 #RGB` 
+                    // テキストにもストリークを追加
+                    text: `Retina - Daily Color ${dateText}\nScore: ${score}\n🔥 Streak: ${streakCount} Days\n\n#Retina #色彩感覚 #RGB` 
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_daily_${dateText}.png`; link.href = canvas.toDataURL(); link.click();

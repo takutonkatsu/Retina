@@ -77,10 +77,13 @@
             </div>
 
             <div class="daily-section" onclick="AppController.startGameMode('daily')">
+                <div id="menu-daily-streak" class="streak-badge hidden">🔥 0 Days</div>
+
                 <div class="daily-main-container">
                     <div id="menu-daily-color-preview" class="daily-preview-large"></div>
                     <div class="daily-content">
                         <div class="daily-label">TODAY'S CHALLENGE</div>
+
                         <div class="daily-date" id="menu-daily-date">202X.XX.XX</div>
                         <h2 class="daily-title">Daily Color</h2>
                         <p class="daily-desc">世界共通の難問に、今すぐ挑戦せよ。</p>
@@ -208,6 +211,8 @@
                 </button>
                 <button onclick="AppController.returnToMenu()" class="btn-text">BACK TO MENU</button>
             </div>
+            
+            <div id="daily-streak-history" class="daily-history-container hidden" style="margin-top:20px;"></div>
         </section>
 
         <section id="screen-rush" class="screen fade-in">
