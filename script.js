@@ -1290,7 +1290,7 @@ const AnotherGame = {
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125); 
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#00e5ff'; ctx.fillText("COLOR STORAGE", 880, 125);
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
@@ -1373,7 +1373,7 @@ const AnotherGame = {
         if (img && img.complete) { ctx.drawImage(img, 50, 50, 100, 100); }
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125); 
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.fillText("COLOR STORAGE", 880, 125);
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#00e5ff'; ctx.fillText("COLOR STORAGE", 880, 125);
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
 
         for(let i=1; i<max; i++) {
@@ -1617,7 +1617,7 @@ const DailyGame = {
         ctx.font = '900 64px "Inter", sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'left'; 
         ctx.fillText("Retina", 180, 125); 
         
-        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ffd700'; 
+        ctx.font = '700 32px "JetBrains Mono", monospace'; ctx.fillStyle = '#ff9f43'; 
         ctx.textAlign = 'right';
         ctx.fillText("DAILY COLOR", 1140, 125);
 

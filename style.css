@@ -15,6 +15,10 @@
     --accent-gold: #ffd700;
     --primary-multi: #9c88ff; 
 
+    /* ★変更/追加: モード用テーマカラー */
+    --accent-daily: #ff9f43; /* オレンジ (Daily / Streak用) */
+    --accent-storage: #00e5ff; /* シアン (Storage用) */
+
     --font-ui: 'Inter', 'Noto Sans JP', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     
@@ -71,7 +75,7 @@ html, body {
 .daily-main-container { display: flex; align-items: center; gap: 20px; flex: 1; }
 .daily-preview-large { width: 100px; height: 100px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.2); box-shadow: 0 0 30px rgba(0,0,0,0.5); flex-shrink: 0; background-color: #000; transition: background-color 0.5s; }
 .daily-content { display: flex; flex-direction: column; justify-content: center; }
-.daily-label { font-size: 0.7rem; letter-spacing: 2px; color: var(--accent-gold); font-weight: bold; margin-bottom: 5px; }
+.daily-label { font-size: 0.7rem; letter-spacing: 2px; color: var(--accent-daily); font-weight: bold; margin-bottom: 5px; }
 .daily-date { font-family: var(--font-mono); color: var(--text-muted); font-size: 0.85rem; margin-bottom: 5px; }
 /* 修正: 文字切れ対策でpadding-bottomを追加 */
 .daily-title { font-size: 2rem; font-weight: 900; margin: 0; line-height: 1; background: linear-gradient(to right, #fff, #ddd); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; padding-bottom: 5px; }
@@ -326,7 +330,14 @@ html, body {
 /* Game UI */
 .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .game-title { margin: 0; font-size: 1.3rem; letter-spacing: -1px; padding-left: 12px; border-left: 4px solid transparent; line-height: 1.1; }
-.color-origin { border-left-color: var(--accent-red); } .color-rush { border-left-color: var(--accent-green); } .color-survival { border-left-color: var(--accent-blue); } .color-storage { border-left-color: #888; } .color-daily { border-left-color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); } .color-versus { border-left-color: var(--primary-multi); }
+.color-origin { border-left-color: var(--accent-red); } 
+.color-rush { border-left-color: var(--accent-green); } 
+.color-survival { border-left-color: var(--accent-blue); } 
+/* ★変更: Dailyをオレンジに */
+.color-daily { border-left-color: var(--accent-daily); } 
+/* ★変更: Storageをシアンに */
+.color-storage { border-left-color: var(--accent-storage); }
+.color-versus { border-left-color: var(--primary-multi); }
 .digital-timer { font-family: var(--font-mono); font-size: 1.3rem; color: var(--text-main); }
 .glass-panel { background: var(--panel-glass); border: 1px solid var(--panel-border); backdrop-filter: blur(12px); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
 .color-display-area { display: flex; gap: 12px; margin-bottom: 15px; }
