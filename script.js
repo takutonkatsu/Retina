@@ -1529,7 +1529,7 @@ const DailyGame = {
         this.startTimer();
     },
 
-    // ★追加: 履歴描画関数
+    // ★修正: 履歴描画関数 (Originモードのデザインに合わせる)
     renderStreakHistory: function() {
         const container = document.getElementById('daily-streak-history');
         const streakCount = Number(localStorage.getItem("daily_streak_count")) || 1;
@@ -1542,24 +1542,36 @@ const DailyGame = {
 
         container.classList.remove('hidden');
         
+        // ヘッダー部分はそのまま
         let html = `<div class="daily-history-header"><span>🔥 Current Streak</span><span>${streakCount} Days</span></div>`;
         
         streakLog.forEach((item, index) => {
             // 最新（今日）の記録のみハイライト
             const highlightClass = index === 0 ? "today-highlight" : "";
             
+            // HexからRGB文字列を生成 ("255, 128, 0" の形式)
+            const targetRgb = Utils.hexToRgbString(item.targetHex);
+            const inputRgb = Utils.hexToRgbString(item.inputHex);
+            
+            // Originモードと同じクラス構造(.history-colors, .label-box, .history-right)を使用
             html += `
             <div class="daily-history-item ${highlightClass}">
                 <div class="daily-history-date">${item.date}</div>
                 <div class="history-colors">
                     <div class="color-row">
-                        <span class="chip-xs" style="background:${item.targetHex}"></span> Target
+                        <span class="label-box" style="color:#aaa">TARGET</span>
+                        <span class="chip-xs" style="background:${item.targetHex}"></span>
+                        <span>${targetRgb}</span>
                     </div>
                     <div class="color-row">
-                        <span class="chip-xs" style="background:${item.inputHex}"></span> You
+                        <span class="label-box" style="color:#fff">YOU</span>
+                        <span class="chip-xs" style="background:${item.inputHex}"></span>
+                        <span>${inputRgb}</span>
                     </div>
                 </div>
-                <div class="history-score-val" style="font-size:0.9rem;">${item.score}%</div>
+                <div class="history-right">
+                    <div class="history-score-val">${item.score}%</div>
+                </div>
             </div>`;
         });
 
@@ -1590,9 +1602,9 @@ const DailyGame = {
         const targetHex = this.targetColor.hex;
         const savedInputHex = localStorage.getItem("daily_input_hex_" + this.dateStr) || "#000000";
         
-        // ★追加: ストリーク数を取得
         const streakCount = localStorage.getItem("daily_streak_count") || 1;
-        
+        const streakText = `🔥${streakCount}Day`; // バッジ用テキスト
+
         canvas.width = 1200;
         canvas.height = 800;
 
@@ -1611,26 +1623,52 @@ const DailyGame = {
 
         ctx.beginPath(); ctx.moveTo(60, 180); ctx.lineTo(1140, 180); ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2; ctx.stroke();
         
-        // 日付
+        // --- 日付とストリークバッジの描画 ---
         ctx.font = '700 48px "JetBrains Mono", monospace'; 
         ctx.fillStyle = '#eee'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText(dateText, 600, 260); 
+        
+        // まず日付を描画
+        const dateY = 260;
+        ctx.fillText(dateText, 600, dateY); 
+        
+        // 日付の幅を計測してバッジの位置を決定
+        const dateWidth = ctx.measureText(dateText).width;
+        const badgeX = 600 + (dateWidth / 2) + 30; // 日付の右横
+        const badgeY = dateY - 45; // 少し上に配置
+        
+        // バッジ背景
+        ctx.save();
+        ctx.font = 'bold 32px "JetBrains Mono", monospace'; // バッジ用フォント設定
+        const badgeWidth = ctx.measureText(streakText).width + 30;
+        const badgeHeight = 50;
+        
+        ctx.fillStyle = 'rgba(255, 159, 67, 0.2)'; // オレンジ背景
+        ctx.strokeStyle = '#ff9f43';
+        ctx.lineWidth = 2;
+        
+        // 角丸矩形を描画 (簡易版)
+        ctx.beginPath();
+        ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 10);
+        ctx.fill();
+        ctx.stroke();
+        
+        // バッジ文字
+        ctx.fillStyle = '#ff9f43';
+        ctx.textAlign = 'left';
+        ctx.fillText(streakText, badgeX + 15, badgeY + 36);
+        ctx.restore();
+        // ----------------------------------
 
-        // ストリーク表示 (画像に追加)
-        ctx.font = 'bold 36px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#ff9f43'; // オレンジ
-        ctx.fillText(`🔥 ${streakCount} Day Streak`, 600, 310);
-
-        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 480); // 少し下にずらした
+        ctx.font = '900 180px "Inter", sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.fillText(score, 600, 450); 
         
         const drawColor = (x, y, color, label) => {
             ctx.font = 'bold 28px sans-serif'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'center'; ctx.fillText(label, x, y - 110);
             ctx.save(); ctx.beginPath(); ctx.arc(x, y, 80, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
             ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke(); ctx.restore();
         };
-        drawColor(400, 660, targetHex, "TARGET");
-        drawColor(800, 660, savedInputHex, "YOU");
+        drawColor(400, 630, targetHex, "TARGET");
+        drawColor(800, 630, savedInputHex, "YOU");
 
         ctx.font = '24px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'center'; 
         ctx.fillText("https://takutonkatsu.github.io/Retina/", 600, 770);
@@ -1647,14 +1685,14 @@ const DailyGame = {
                 navigator.share({ 
                     files: [file], 
                     title: 'Retina Daily Result', 
-                    // テキストにもストリークを追加
-                    text: `Retina - Daily Color ${dateText}\nScore: ${score}\n🔥 Streak: ${streakCount} Days\n\n#Retina #色彩感覚 #RGB` 
+                    // ★修正: Streak情報を削除
+                    text: `Retina - Daily Color ${dateText}\nScore: ${score}\n\n#Retina #色彩感覚 #RGB` 
                 }).catch(console.error);
             } else {
                 const link = document.createElement('a'); link.download = `retina_daily_${dateText}.png`; link.href = canvas.toDataURL(); link.click();
             }
         });
-    }
+    },
 };
 
 

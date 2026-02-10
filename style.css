@@ -1357,32 +1357,42 @@ html, body {
     align-items: center;
 }
 
-/* 履歴アイテム (既存のhistory-itemをベースに微調整) */
+/* 履歴アイテム (レイアウト調整) */
 .daily-history-item {
     display: grid; 
-    grid-template-columns: 80px 1fr auto; /* 日付 | 色情報 | スコア */
+    /* 修正: 日付幅を75pxに縮小し、中央(色情報)にスペースを譲る */
+    grid-template-columns: 75px 1fr auto;
     gap: 8px; 
     align-items: center; 
-    padding: 8px; 
+    padding: 10px 8px; 
     border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
     background: rgba(255, 255, 255, 0.02); 
     border-radius: 8px; 
     margin-bottom: 4px;
 }
 
-.daily-history-date {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: #aaa;
-    text-align: left;
-}
-
-/* 今日の記録を目立たせる */
+/* 今日のハイライト（変更なし） */
 .daily-history-item.today-highlight {
     background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
-    border-left: 2px solid var(--accent-gold);
+    border-left: 3px solid var(--accent-gold); /* 2px -> 3px に統一 */
 }
 .daily-history-item.today-highlight .daily-history-date {
     color: var(--accent-gold);
     font-weight: bold;
+}
+
+/* 日付フォント調整 (少し小さくして収まりを良くする) */
+.daily-history-date {
+    font-family: var(--font-mono);
+    font-size: 0.7rem; /* 0.75rem -> 0.7rem */
+    color: #888; 
+    text-align: left;
+    white-space: nowrap; 
+    letter-spacing: -0.5px; /* 文字間を少し詰める */
+}
+
+/* RGB値が見切れないようにフォントサイズ調整 */
+.color-row span:last-child {
+    font-size: 0.65rem; /* RGB数値のフォントサイズ調整 */
+    letter-spacing: -0.5px;
 }

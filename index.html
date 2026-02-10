@@ -180,39 +180,41 @@
             <button id="daily-guess-btn" class="main-action-btn">GUESS</button>
         </section>
 
-        <section id="screen-result-daily" class="screen fade-in result-screen daily-result-bg">
-            <div class="game-header" style="margin-bottom:20px;">
-                <h2 class="game-title color-daily">Daily Color</h2>
-                <div class="daily-res-date" id="daily-res-date" style="font-size:1rem;">202X.XX.XX</div>
-            </div>
-
-            <div class="score-display"><span class="score-label">SCORE</span><h1 id="daily-score">0%</h1></div>
+        <section id="screen-result-daily" class="screen fade-in">
             
-            <div class="daily-compare-container">
-                <div class="daily-color-block">
-                    <p class="compare-label">TARGET</p>
-                    <div id="daily-ans-color" class="daily-big-box"></div>
-                    <span id="daily-ans-text" class="daily-rgb-text">0, 0, 0</span>
+            <div class="result-screen daily-result-bg">
+                <div class="game-header" style="margin-bottom:20px;">
+                    <h2 class="game-title color-daily">Daily Color</h2>
+                    <div class="daily-res-date" id="daily-res-date" style="font-size:1rem;">202X.XX.XX</div>
                 </div>
-                <div class="daily-color-block">
-                    <p class="compare-label">YOU</p>
-                    <div id="daily-your-color" class="daily-big-box"></div>
-                    <span id="daily-your-text" class="daily-rgb-text">0, 0, 0</span>
-                </div>
-            </div>
-            
-            <div style="text-align:center; margin-bottom:30px; margin-top:20px; color:rgba(255,255,255,0.7); font-size:0.9rem;">
-                Next Color in: <span id="daily-next-timer" style="color:#fff; font-family:var(--font-mono); font-weight:bold;">--:--:--</span>
-            </div>
 
-            <div class="modal-buttons">
-                <button onclick="DailyGame.generateShareImage()" class="btn-share">
-                    <span class="share-icon">📤</span> SHARE RESULT
-                </button>
-                <button onclick="AppController.returnToMenu()" class="btn-text">BACK TO MENU</button>
-            </div>
-            
-            <div id="daily-streak-history" class="daily-history-container hidden" style="margin-top:20px;"></div>
+                <div class="score-display"><span class="score-label">SCORE</span><h1 id="daily-score">0%</h1></div>
+                
+                <div class="daily-compare-container">
+                    <div class="daily-color-block">
+                        <p class="compare-label">TARGET</p>
+                        <div id="daily-ans-color" class="daily-big-box"></div>
+                        <span id="daily-ans-text" class="daily-rgb-text">0, 0, 0</span>
+                    </div>
+                    <div class="daily-color-block">
+                        <p class="compare-label">YOU</p>
+                        <div id="daily-your-color" class="daily-big-box"></div>
+                        <span id="daily-your-text" class="daily-rgb-text">0, 0, 0</span>
+                    </div>
+                </div>
+                
+                <div style="text-align:center; margin-bottom:30px; margin-top:20px; color:rgba(255,255,255,0.7); font-size:0.9rem;">
+                    Next Color in: <span id="daily-next-timer" style="color:#fff; font-family:var(--font-mono); font-weight:bold;">--:--:--</span>
+                </div>
+
+                <div class="modal-buttons">
+                    <button onclick="DailyGame.generateShareImage()" class="btn-share">
+                        <span class="share-icon">📤</span> SHARE RESULT
+                    </button>
+                    <button onclick="AppController.returnToMenu()" class="btn-text">BACK TO MENU</button>
+                </div>
+            </div> <div id="daily-streak-history" class="daily-history-container hidden" style="margin-top:30px;"></div>
+
         </section>
 
         <section id="screen-rush" class="screen fade-in">
