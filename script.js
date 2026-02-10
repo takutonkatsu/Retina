@@ -1303,10 +1303,10 @@ const AnotherGame = {
         ctx.fillText(date, 1140, 240);
 
         const centerX = 600;
-        const centerY = 480; 
+        const centerY = 470; 
         ctx.save();
         ctx.beginPath(); 
-        ctx.arc(centerX, centerY, 180, 0, Math.PI * 2); 
+        ctx.arc(centerX, centerY, 150, 0, Math.PI * 2); 
         ctx.fillStyle = hex; 
         ctx.fill();
         ctx.lineWidth = 10; 
@@ -1315,11 +1315,11 @@ const AnotherGame = {
         ctx.restore();
 
         // ★修正箇所: カンマの後にスペースを追加
-        const rgbClean = rgbTxt.replace(/[()]/g, '').replace(/,/g, ', '); 
-        ctx.font = '900 60px "Inter", sans-serif'; 
+        const rgbClean = rgbTxt.replace(/[()]/g, '').replace(/,/g, ' , '); 
+        ctx.font = '900 48px "Inter", sans-serif'; 
         ctx.fillStyle = '#ffffff'; 
         ctx.textAlign = 'center'; 
-        ctx.fillText(rgbClean, centerX, centerY + 250); 
+        ctx.fillText(rgbClean, centerX, centerY + 230); 
 
         ctx.font = '24px sans-serif'; 
         ctx.fillStyle = 'rgba(255,255,255,0.4)'; 
