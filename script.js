@@ -1226,8 +1226,12 @@ const AnotherGame = {
             const hex = localStorage.getItem("3input_rgb16"+i) || '#000'; 
             const txt = localStorage.getItem("3input_rgb"+i) || ''; 
             const date = localStorage.getItem("3date"+i) || '';
-            // 変更: class="history-item storage-item" にして専用グリッドを適用
-            html += `<div class="history-item storage-item">
+            
+            // ★変更点:
+            // 1. 親divに onclick イベントを追加
+            // 2. 共有ボタン(btn-share-icon)を削除
+            // 3. 削除ボタンのonclickに event.stopPropagation() を追加して、削除時に共有が発動しないようにする
+            html += `<div class="history-item storage-item" onclick="AnotherGame.shareSingleItem(${i})">
                 <span class="history-index">#${i}</span>
                 <div class="history-colors">
                     <div class="color-row">
@@ -1236,8 +1240,7 @@ const AnotherGame = {
                     </div>
                     <div style="font-size:0.7rem; color:#666; margin-top:2px;">${date}</div>
                 </div>
-                <button class="btn-share-icon" onclick="AnotherGame.shareSingleItem(${i})">📤</button>
-                <button class="btn-delete" onclick="AnotherGame.deleteSingleItem(${i})">✕</button>
+                <button class="btn-delete" onclick="event.stopPropagation(); AnotherGame.deleteSingleItem(${i})">✕</button>
             </div>`;
         }
         list.innerHTML = html;

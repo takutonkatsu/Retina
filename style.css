@@ -523,9 +523,10 @@ html, body {
 .history-item:hover {
     background: rgba(255, 255, 255, 0.08);
 }
-/* 追加: Color Storage用のグリッド定義（削除・シェアボタン用） */
+/* 追加: Color Storage用のグリッド定義（削除ボタンのみ） */
 .storage-item {
-    grid-template-columns: 35px 1fr 30px 30px;
+    /* Shareボタン(30px)を削除し、削除ボタン(30px)だけ残す */
+    grid-template-columns: 35px 1fr 30px;
 }
 /* Origin History Best Record Colors */
 .history-item.best-record { 
