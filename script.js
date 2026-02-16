@@ -2205,11 +2205,16 @@ const VersusGame = {
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
             const boxClass = p.me ? 'res-grid-box is-me' : 'res-grid-box';
             
-            html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span class="win-label">WINS</span><span class="win-val">${p.wins}</span></div></div>`;
+            // ★修正: リーチ判定 (現在の勝利数 == ゴール - 1)
+            const isReach = (p.wins === goal - 1);
+            // リーチならゴールドにするスタイル定義
+            const winValStyle = isReach ? 'style="color: var(--accent-gold); text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);"' : '';
+
+            html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span class="win-label">WINS</span><span class="win-val" ${winValStyle}>${p.wins}</span></div></div>`;
         });
         html += '</div>';
 
-        // ★修正: 順位表の再描画防止 (ラウンド番号が変わった時だけ描画)
+        // 順位表の再描画防止
         if (resultContainer.getAttribute('data-rendered-round') != data.round) {
             resultContainer.innerHTML = html;
             resultContainer.setAttribute('data-rendered-round', data.round);
@@ -2237,8 +2242,7 @@ const VersusGame = {
             compareHtml += `<div class="multi-compare-item"><p class="multi-compare-label">${Utils.escapeHtml(p.name)}</p><div class="mini-box" style="background:${p.color.hex}"></div><span class="rgb-value-text">${p.color.r},${p.color.g},${p.color.b}</span></div>`; 
         });
 
-        // ★修正: 色比較エリアの再描画防止 (ラウンド番号が変わった時だけ描画)
-        // これにより、Continueボタンが押されてもここは書き換わらず、ピクつきが消えます
+        // 色比較エリアの再描画防止
         if (playersCompContainer.getAttribute('data-rendered-round') != data.round) {
             playersCompContainer.innerHTML = compareHtml;
             playersCompContainer.setAttribute('data-rendered-round', data.round);
