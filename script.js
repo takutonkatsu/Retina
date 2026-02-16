@@ -2206,7 +2206,8 @@ const VersusGame = {
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
             const boxClass = p.me ? 'res-grid-box is-me' : 'res-grid-box';
             
-            html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span style="font-size:0.7rem; color:#aaa;">WINS</span><span style="font-size:1.2rem; color:#fff; font-weight:bold;">${p.wins}</span></div></div>`;
+            // ★修正: インラインスタイルをやめ、クラス(win-label, win-val)を付与
+            html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span class="win-label">WINS</span><span class="win-val">${p.wins}</span></div></div>`;
         });
         html += '</div>';
         resultContainer.innerHTML = html;
@@ -2225,7 +2226,7 @@ const VersusGame = {
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-        
+
         // ★修正: 4人の場合の分岐(if-else)を削除し、常に flex-row を適用して横並びにする
         playersCompContainer.className = "multi-players-wrapper flex-row";
 

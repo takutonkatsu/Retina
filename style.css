@@ -790,31 +790,110 @@ html, body {
 
 .result-title-style { margin: 0 0 10px; font-size: 1.8rem; letter-spacing: 1px; font-weight: 700; color: #ccc; }
 .winner-declare { font-size: 1.3rem; color: var(--accent-gold); font-weight: 900; animation: pulse 1s infinite; margin-bottom: 8px; }
-.res-grid-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 15px; width: 100%; } /* gap: 10px -> 6px に縮小 */
-
-/* 修正: 3人時は横並び強制 (スマホ対応) */
-.res-grid-box { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; position: relative; border: 1px solid rgba(255,255,255,0.1); width: 48%; max-width: 130px; }
-.res-grid-container.players-3 .res-grid-box { width: 31%; max-width: none; } /* 32% -> 31% */
-
-/* 追加: 4人時は2x2配置を強制 */
-.res-grid-container.players-4 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+/* ★修正: リザルトコンテナを常に横一列(nowrap)にする */
+.res-grid-container {
+    display: flex;
+    flex-wrap: nowrap; /* 折り返しなし */
+    justify-content: center;
     gap: 8px;
+    margin-bottom: 15px;
+    width: 100%;
 }
-.res-grid-container.players-4 .res-grid-box {
-    width: 100%; /* Grid内なので100% */
-    max-width: none;
+/* ★修正: 個々のボックスをフレキシブルにする */
+.res-grid-box {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 10px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    flex: 1; /* 均等にスペースを埋める */
+    max-width: 130px; /* PCなどでは広がりすぎないように */
+    min-width: 0; /* コンテンツが大きくても縮小を許可 */
+    min-height: 110px;
+}
+/* ★追加: 自分のボックス用スタイル (YOUバッジの代わり) */
+.res-grid-box.is-me {
+    background: rgba(156, 136, 255, 0.15); /* 紫系の薄い背景 */
+    border: 1px solid rgba(156, 136, 255, 0.4);
+    box-shadow: 0 0 15px rgba(156, 136, 255, 0.1);
+}
+
+.res-grid-rank {
+    font-size: 1.1rem; 
+    font-weight: 900;
+    font-style: italic; 
+    margin-bottom: 5px;
+    line-height: 1;
+}
+.res-grid-score { 
+    font-size: 1.3rem; 
+    font-family: var(--font-mono); 
+    font-weight: bold; 
+    margin: 4px 0; 
+    /* margin-bottom: 5px; スコアと名前の間隔 */
+    color: #fff; 
+}
+.res-grid-name { 
+    font-size: 0.75rem; 
+    font-weight: bold; 
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    max-width: 100%; 
+    margin-bottom: 4px; 
+}
+
+
+/* ★追加: WINSバッジ内の文字スタイル */
+.win-label { font-size: 0.7rem; color: #aaa; }
+.win-val { font-size: 1.2rem; color: #fff; font-weight: bold; }
+
+/* 以前の Grid設定や幅指定を削除/無効化 */
+.res-grid-container.players-3 .res-grid-box { width: auto; max-width: 130px; }
+.res-grid-container.players-4 { display: flex; gap: 8px; } /* Grid設定を上書き */
+.res-grid-container.players-4 .res-grid-box { width: auto; max-width: 130px; }
+
+/* ★追加: モバイル対応 (480px以下) - 強力に縮小して一列に収める */
+@media (max-width: 480px) {
+    .res-grid-container {
+        gap: 4px; /* 間隔を詰める */
+    }
+    
+    .res-grid-box {
+        padding: 6px 2px; /* 内側の余白を詰める */
+        min-height: auto; /* 高さ制限を解除 */
+        border-radius: 8px;
+    }
+
+    .res-grid-rank { font-size: 1.0rem; margin-bottom: 2px; }
+    .res-grid-score { 
+        font-size: 1.0rem; 
+        margin-bottom: 2px; 
+    } /* スコアを小さく */
+
+    .res-grid-name { 
+        font-size: 0.6rem; 
+        margin-bottom: 2px; 
+    } /* 名前を小さく */
+    
+    .res-win-badge {
+        margin-top: 2px;
+        padding: 2px 6px;
+    }
+    .win-label { font-size: 0.45rem; }
+    .win-val { font-size: 1.0rem; }
 }
 
 /* Versus Rank Fonts (Simplified) */
-.res-grid-rank { font-size: 1.2rem; font-weight: 900; font-style: italic; margin-bottom: 2px; }
 /* 修正: 1stなどのサイズオーバーライドを削除し、統一サイズに */
 .rank-1st { color: var(--accent-gold); }
 .rank-2nd { color: #c0c0c0; }
 .rank-3rd { color: #cd7f32; }
-.res-grid-score { font-size: 1.3rem; font-family: var(--font-mono); font-weight: bold; margin: 4px 0; color: #fff; }
-.res-grid-name { font-size: 0.75rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; margin-bottom: 4px; }
 .res-you-badge { font-size: 0.55rem; color: var(--accent-green); letter-spacing: 1px; position: absolute; top: 4px; right: 4px; }
 .res-win-badge { margin-top: 4px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
 /* --- Versus Result Layout Update --- */
@@ -1222,36 +1301,6 @@ html, body {
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-
-/* ... (既存のスタイル) ... */
-
-/* --- Versus Result Layout Fixes --- */
-
-/* リザルトボックス */
-.res-grid-box {
-    /* ...既存のプロパティ... */
-    justify-content: flex-start; /* 上詰めにする */
-    padding-top: 10px;
-    min-height: 110px; /* 高さを確保 */
-}
-
-/* ★追加: 自分のボックス用スタイル (YOUバッジの代わり) */
-.res-grid-box.is-me {
-    background: rgba(156, 136, 255, 0.15); /* 紫系の薄い背景 */
-    border: 1px solid rgba(156, 136, 255, 0.4);
-    box-shadow: 0 0 15px rgba(156, 136, 255, 0.1);
-}
-
-.res-grid-rank {
-    font-size: 1.1rem; 
-    margin-bottom: 5px;
-    line-height: 1;
-}
-.res-grid-score {
-    margin-bottom: 5px; /* スコアと名前の間隔 */
-}
-
-/* 削除: .res-you-badge は不要になったので削除 */
 
 /* --- Versus History Grid Lines (Gap Method) --- */
 .vh-grid {
