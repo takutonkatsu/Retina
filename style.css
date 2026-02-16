@@ -1599,7 +1599,7 @@ html, body {
     );
     transform: skewX(-20deg); /* 少し斜めにする */
     /* 6秒周期でアニメーションを無限に繰り返す */
-    animation: shine-effect 6s infinite linear;
+    animation: shine-effect 10s infinite linear;
     pointer-events: none; /* クリックを妨げないように */
 }
 
@@ -1608,7 +1608,7 @@ html, body {
     0% {
         left: -150%; /* 左外からスタート */
     }
-    15% {
+    10% {
         left: 250%; /* 右外へ移動完了 */
     }
     100% {
