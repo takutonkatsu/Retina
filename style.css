@@ -1578,3 +1578,40 @@ html, body {
     font-size: 0.65rem; /* RGB数値のフォントサイズ調整 */
     letter-spacing: -0.5px;
 }
+
+
+/* --- Daily Section Kira-Kira Effect --- */
+
+/* 光の筋となる層 */
+.daily-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%; /* 開始位置（画面左外） */
+    width: 80%; /* 光の幅 */
+    height: 100%;
+    /* 斜めの透明な光のグラデーション */
+    background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 80%
+    );
+    transform: skewX(-20deg); /* 少し斜めにする */
+    /* 6秒周期でアニメーションを無限に繰り返す */
+    animation: shine-effect 6s infinite linear;
+    pointer-events: none; /* クリックを妨げないように */
+}
+
+/* 光が移動するアニメーション */
+@keyframes shine-effect {
+    0% {
+        left: -150%; /* 左外からスタート */
+    }
+    15% {
+        left: 250%; /* 右外へ移動完了 */
+    }
+    100% {
+        left: 250%; /* 残りの時間は待機 */
+    }
+}
