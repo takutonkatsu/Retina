@@ -2218,7 +2218,7 @@ const VersusGame = {
             if (myData.rank === 1) { title.innerText = "WINNER!"; title.style.color = "var(--accent-gold)"; }
             else if (myData.rank === 2) { title.innerText = "2nd PLACE"; title.style.color = "#c0c0c0"; }
             else if (myData.rank === 3) { title.innerText = "3rd PLACE"; title.style.color = "#cd7f32"; }
-            else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#fff"; }
+            else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#9556af"; }
         }
 
         document.getElementById('versus-goal-val').innerText = goal;

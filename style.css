@@ -865,7 +865,7 @@ html, body {
     }
     
     .res-grid-box {
-        padding: 6px 2px; /* 内側の余白を詰める */
+        padding: 6px 0.5px; /* 内側の余白を詰める */
         min-height: auto; /* 高さ制限を解除 */
         border-radius: 8px;
     }
@@ -1004,8 +1004,8 @@ html, body {
 
     /* 共通: 色の正方形を小さく */
     .mini-box {
-        width: 28px; /* 40px -> 28px */
-        height: 28px;
+        width: 36px; /* 40px -> 28px */
+        height: 36px;
         border-radius: 4px;
         margin-bottom: 3px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -1020,7 +1020,7 @@ html, body {
 
     /* 共通: RGB数値を小さく */
     .rgb-value-text {
-        font-size: 0.5rem; /* 0.7rem -> 0.5rem */
+        font-size: 0.55rem; /* 0.7rem -> 0.55rem */
         letter-spacing: -0.6px; /* 文字間を詰めて収まりよくする */
         white-space: nowrap; /* 改行させない */
     }
