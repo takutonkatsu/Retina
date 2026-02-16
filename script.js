@@ -2268,7 +2268,7 @@ const VersusGame = {
         if (champions.length > 0) {
             winDeclare.classList.remove('hidden'); 
             const names = champions.map(p => p.name).join(" & ");
-            winDeclare.innerText = `🏆 ${names} WIN THE GAME! 🏆`; 
+            winDeclare.innerText = `${names} WIN!🏆`; 
             title.innerText = "GAME SET"; title.style.color = "#fff";
             
             btn.innerHTML = 'RETURN TO MENU';
