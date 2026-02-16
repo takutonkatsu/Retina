@@ -2391,7 +2391,18 @@ const VersusGame = {
         }
         if (!lastRoundData) return;
 
-        const playerKeys = ['p1','p2','p3','p4'].filter(k => lastRoundData.results && lastRoundData.results[k]);
+        // 存在するプレイヤーキーを取得
+        let playerKeys = ['p1','p2','p3','p4'].filter(k => lastRoundData.results && lastRoundData.results[k]);
+
+        // ★修正: 勝利数順（降順）に並び替える
+        playerKeys.sort((a, b) => {
+            const winsA = (lastRoundData.results[a] && lastRoundData.results[a].wins !== undefined) 
+                         ? lastRoundData.results[a].wins : (data.players[a].score || 0);
+            const winsB = (lastRoundData.results[b] && lastRoundData.results[b].wins !== undefined) 
+                         ? lastRoundData.results[b].wins : (data.players[b].score || 0);
+            return winsB - winsA; // 多い順
+        });
+
         const playerCount = playerKeys.length;
         const validRoundCount = rounds.filter(r => data.history[r]).length;
 
@@ -2421,17 +2432,18 @@ const VersusGame = {
         ctx.font = '500 24px "JetBrains Mono", monospace'; ctx.fillStyle = '#8b9bb4'; ctx.textAlign = 'left';
         ctx.fillText(dateStr, 60, 220); 
 
+        // ランク計算（同率順位の処理用）
         const playerStats = playerKeys.map(k => {
             const wins = (lastRoundData.results[k] && lastRoundData.results[k].wins !== undefined) 
                          ? lastRoundData.results[k].wins 
                          : (data.players[k].score || 0);
             return { key: k, wins: wins };
         });
-        playerStats.sort((a, b) => b.wins - a.wins);
         
         const rankMap = {};
         playerStats.forEach((p, idx) => {
             let rank = idx + 1;
+            // 前の人と同じ勝利数なら同じランクにする
             if (idx > 0 && p.wins === playerStats[idx-1].wins) {
                 rank = rankMap[playerStats[idx-1].key];
             }
@@ -2445,6 +2457,7 @@ const VersusGame = {
         
         ctx.textAlign = 'center';
         
+        // ★ソート済みの playerKeys でループして描画
         playerKeys.forEach((k, i) => {
             const cx = tableLeft + colWidth * (i + 1) + colWidth/2;
             const rank = rankMap[k];
@@ -2491,6 +2504,7 @@ const VersusGame = {
             ctx.fillStyle = h.targetHex; 
             ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
 
+            // ★履歴データもソート済みの playerKeys 順に描画
             playerKeys.forEach((k, pIdx) => {
                 const cx = tableLeft + colWidth * (pIdx + 1) + colWidth/2;
                 const res = h.results[k];
@@ -2521,7 +2535,7 @@ const VersusGame = {
                 name: res.name || data.players[k].name,
                 wins: res.wins !== undefined ? res.wins : (data.players[k].score || 0)
             };
-        }).sort((a, b) => b.wins - a.wins);
+        });
         
         let shareText = "Retina - Versus Mode\n";
         sortedPlayers.forEach((p, idx) => {
@@ -2531,6 +2545,12 @@ const VersusGame = {
         shareText += "\n#Retina #色彩感覚 #RGB";
 
         canvas.toBlob(blob => {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'share', {
+                    'method': 'image',
+                    'content_type': 'versus_result'
+                });
+            }
             const file = new File([blob], "retina_versus.png", { type: "image/png" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 navigator.share({ 
@@ -2542,7 +2562,7 @@ const VersusGame = {
                 const link = document.createElement('a'); link.download = "retina_versus.png"; link.href = canvas.toDataURL(); link.click();
             }
         });
-    }
+    },
 };
 
 document.getElementById('versus-room-input').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
