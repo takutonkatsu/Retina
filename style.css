@@ -919,7 +919,7 @@ html, body {
 
     /* 右側のPlayersエリア */
     .multi-players-wrapper {
-        gap: 8px; /* プレイヤー同士の間隔を詰める */
+        gap: 6px; /* プレイヤー同士の間隔を詰める */
         justify-content: center;
     }
 
@@ -934,15 +934,15 @@ html, body {
 
     /* 共通: ラベル文字を小さく */
     .multi-compare-label {
-        font-size: 0.55rem; /* 0.7rem -> 0.55rem */
+        font-size: 0.5rem; /* 0.7rem -> 0.55rem-> 0.50rem */
         margin-bottom: 2px;
         max-width: 50px; /* 名前が長すぎる場合は省略 */
     }
 
     /* 共通: RGB数値を小さく */
     .rgb-value-text {
-        font-size: 0.6rem; /* 0.7rem -> 0.6rem */
-        letter-spacing: -0.5px; /* 文字間を詰めて収まりよくする */
+        font-size: 0.5rem; /* 0.7rem -> 0.5rem */
+        letter-spacing: -0.6px; /* 文字間を詰めて収まりよくする */
         white-space: nowrap; /* 改行させない */
     }
 }
