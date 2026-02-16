@@ -796,7 +796,7 @@ html, body {
     flex-wrap: nowrap; /* 折り返しなし */
     justify-content: center;
     gap: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
     width: 100%;
 }
 /* ★修正: 個々のボックスをフレキシブルにする */
@@ -865,7 +865,7 @@ html, body {
     }
     
     .res-grid-box {
-        padding: 6px 0.5px; /* 内側の余白を詰める */
+        padding: 6px 1px; /* 内側の余白を詰める */
         min-height: auto; /* 高さ制限を解除 */
         border-radius: 8px;
     }
@@ -894,6 +894,7 @@ html, body {
 .rank-1st { color: var(--accent-gold); }
 .rank-2nd { color: #c0c0c0; }
 .rank-3rd { color: #cd7f32; }
+.rank-4th { color: #9556af; }
 .res-you-badge { font-size: 0.55rem; color: var(--accent-green); letter-spacing: 1px; position: absolute; top: 4px; right: 4px; }
 .res-win-badge { margin-top: 4px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
 /* --- Versus Result Layout Update --- */

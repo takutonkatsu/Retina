@@ -2172,7 +2172,6 @@ const VersusGame = {
 
             if (p.name) {
                 const isMe = (key === myKey);
-                // ★修正: このラウンドのスコア(lastScore)があれば、現在切断中(empty)でも表示する
                 const hasScore = (p.lastScore !== undefined);
                 
                 if (!isGameSet && !hasScore && (!liveP || liveP.status === 'empty') && !isMe) {
@@ -2202,23 +2201,27 @@ const VersusGame = {
         const resultContainer = document.getElementById('versus-result-container');
         let html = `<div class="res-grid-container players-${activePlayers.length}">`;
         activePlayers.forEach((p) => {
-            let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : ''));
+            let rankClass = p.rank === 1 ? 'rank-1st' : (p.rank === 2 ? 'rank-2nd' : (p.rank === 3 ? 'rank-3rd' : (p.rank === 4 ? 'rank-4th' : '')));
             let rankText = p.rank === 1 ? '1st' : (p.rank === 2 ? '2nd' : (p.rank === 3 ? '3rd' : p.rank+'th'));
             const boxClass = p.me ? 'res-grid-box is-me' : 'res-grid-box';
             
-            // ★修正: インラインスタイルをやめ、クラス(win-label, win-val)を付与
             html += `<div class="${boxClass}"><span class="res-grid-rank ${rankClass}">${rankText}</span><span class="res-grid-score">${p.score}%</span><span class="res-grid-name">${Utils.escapeHtml(p.name)}</span><div class="res-win-badge"><span class="win-label">WINS</span><span class="win-val">${p.wins}</span></div></div>`;
         });
         html += '</div>';
-        resultContainer.innerHTML = html;
+
+        // ★修正: 順位表の再描画防止 (ラウンド番号が変わった時だけ描画)
+        if (resultContainer.getAttribute('data-rendered-round') != data.round) {
+            resultContainer.innerHTML = html;
+            resultContainer.setAttribute('data-rendered-round', data.round);
+        }
         
         const title = document.getElementById('versus-result-title');
         const myData = activePlayers.find(p => p.me);
         if (myData) {
-            if (myData.rank === 1) { title.innerText = "WINNER!"; title.style.color = "var(--accent-gold)"; }
-            else if (myData.rank === 2) { title.innerText = "2nd PLACE"; title.style.color = "#c0c0c0"; }
-            else if (myData.rank === 3) { title.innerText = "3rd PLACE"; title.style.color = "#cd7f32"; }
-            else { title.innerText = myData.rank + "th PLACE"; title.style.color = "#9556af"; }
+            if (myData.rank === 1) { title.innerText = "Winner🥇"; title.style.color = "var(--accent-gold)"; }
+            else if (myData.rank === 2) { title.innerText = "2nd🥈"; title.style.color = "#c0c0c0"; }
+            else if (myData.rank === 3) { title.innerText = "3rd🥉"; title.style.color = "#cd7f32"; }
+            else { title.innerText = myData.rank + "th"; title.style.color = "#9556af"; }
         }
 
         document.getElementById('versus-goal-val').innerText = goal;
@@ -2226,8 +2229,6 @@ const VersusGame = {
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-
-        // ★修正: 4人の場合の分岐(if-else)を削除し、常に flex-row を適用して横並びにする
         playersCompContainer.className = "multi-players-wrapper flex-row";
 
         let compareHtml = ''; 
@@ -2235,7 +2236,13 @@ const VersusGame = {
         sortedByKey.forEach(p => { 
             compareHtml += `<div class="multi-compare-item"><p class="multi-compare-label">${Utils.escapeHtml(p.name)}</p><div class="mini-box" style="background:${p.color.hex}"></div><span class="rgb-value-text">${p.color.r},${p.color.g},${p.color.b}</span></div>`; 
         });
-        playersCompContainer.innerHTML = compareHtml;
+
+        // ★修正: 色比較エリアの再描画防止 (ラウンド番号が変わった時だけ描画)
+        // これにより、Continueボタンが押されてもここは書き換わらず、ピクつきが消えます
+        if (playersCompContainer.getAttribute('data-rendered-round') != data.round) {
+            playersCompContainer.innerHTML = compareHtml;
+            playersCompContainer.setAttribute('data-rendered-round', data.round);
+        }
 
         this.renderHistory(logicData);
         
@@ -2293,7 +2300,7 @@ const VersusGame = {
             
             let readyCount = 0; 
             let currentRoomMembers = 0;
-             Object.keys(logicData.players).forEach(key => {
+            Object.keys(logicData.players).forEach(key => {
                 if (logicData.players[key].status !== 'empty') {
                     currentRoomMembers++;
                     if (logicData.players[key].status === 'ready') readyCount++;
