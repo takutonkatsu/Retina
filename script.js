@@ -2225,11 +2225,9 @@ const VersusGame = {
         document.getElementById('versus-ans-text').innerText = `${q.r}, ${q.g}, ${q.b}`;
         
         const playersCompContainer = document.getElementById('versus-players-compare');
-        if (activePlayers.length === 4) {
-            playersCompContainer.className = "multi-players-wrapper grid-2x2-force";
-        } else {
-            playersCompContainer.className = "multi-players-wrapper flex-row"; 
-        }
+        
+        // ★修正: 4人の場合の分岐(if-else)を削除し、常に flex-row を適用して横並びにする
+        playersCompContainer.className = "multi-players-wrapper flex-row";
 
         let compareHtml = ''; 
         let sortedByKey = [...activePlayers].sort((a, b) => a.key.localeCompare(b.key));

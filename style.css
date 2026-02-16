@@ -817,15 +817,136 @@ html, body {
 .res-grid-name { font-size: 0.75rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; margin-bottom: 4px; }
 .res-you-badge { font-size: 0.55rem; color: var(--accent-green); letter-spacing: 1px; position: absolute; top: 4px; right: 4px; }
 .res-win-badge { margin-top: 4px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1); }
-.multi-compare-wrapper { display: flex; flex-direction: column; align-items: center; margin: 15px 0; width: 100%; }
-.multi-compare-target { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); width: 80%; }
-.large-target-box { width: 70px; height: 70px; margin: 5px auto; border-radius: 12px; border: 2px solid rgba(255,255,255,0.3); }
-.multi-players-wrapper { width: 100%; justify-content: center; }
+/* --- Versus Result Layout Update --- */
+
+/* 全体を囲むコンテナ: 横並び(Flex)にする */
+.multi-compare-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin: 20px auto;
+    max-width: 95%;
+}
+
+/* 左側のTargetエリア */
+.multi-compare-target {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+/* 中央の区切り線 */
+.multi-compare-divider {
+    width: 1px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* 右側のPlayersエリア (ラッパー) */
+.multi-players-wrapper {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* 画面幅が狭い場合は折り返し */
+}
+
+/* 個々のプレイヤー要素 */
+.multi-compare-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.5s;
+}
+
+.multi-compare-label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #fff;
+    white-space: nowrap;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 色を表示する小さい正方形 */
+.mini-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* RGB数値テキスト */
+.rgb-value-text {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: #8b9bb4;
+}
+
+/* モバイル対応: 画面が狭くても横並びを維持し、全体を縮小して収める */
+@media (max-width: 480px) {
+    .multi-compare-container {
+        flex-direction: row; /* 横並びを強制 */
+        gap: 8px; /* 間隔を詰める */
+        padding: 10px 5px; /* コンテナの余白を詰める */
+        justify-content: center; /* 中央寄せ */
+    }
+
+    /* 区切り線 */
+    .multi-compare-divider {
+        width: 1px;
+        height: 40px; /* 線を少し短く */
+        background: rgba(255, 255, 255, 0.2);
+        flex-shrink: 0; /* 線が潰れないように */
+        margin: 0 2px;
+    }
+
+    /* 左側のTargetエリア */
+    .multi-compare-target {
+        min-width: auto; /* 固定幅を解除 */
+        flex-shrink: 0; /* 潰れすぎないように */
+    }
+
+    /* 右側のPlayersエリア */
+    .multi-players-wrapper {
+        gap: 8px; /* プレイヤー同士の間隔を詰める */
+        justify-content: center;
+    }
+
+    /* 共通: 色の正方形を小さく */
+    .mini-box {
+        width: 28px; /* 40px -> 28px */
+        height: 28px;
+        border-radius: 4px;
+        margin-bottom: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* 共通: ラベル文字を小さく */
+    .multi-compare-label {
+        font-size: 0.55rem; /* 0.7rem -> 0.55rem */
+        margin-bottom: 2px;
+        max-width: 50px; /* 名前が長すぎる場合は省略 */
+    }
+
+    /* 共通: RGB数値を小さく */
+    .rgb-value-text {
+        font-size: 0.6rem; /* 0.7rem -> 0.6rem */
+        letter-spacing: -0.5px; /* 文字間を詰めて収まりよくする */
+        white-space: nowrap; /* 改行させない */
+    }
+}
 .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; justify-items: center; }
-.multi-compare-item { text-align: center; width: 85px; }
-.multi-compare-label { font-size: 0.7rem; color: #aaa; margin-bottom: 4px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.rgb-value-text { display: block; font-family: var(--font-mono); font-size: 0.65rem; color: #888; margin-top: 2px; }
 
 /* Daily Result Styling (Compact) */
 .daily-result-bg { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; padding: 25px 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
@@ -1105,18 +1226,6 @@ html, body {
 /* ... (既存のスタイル) ... */
 
 /* --- Versus Result Layout Fixes --- */
-
-/* 4人対戦時の2x2配置 (中央寄せ・強制適用) */
-.grid-2x2-force {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px 30px; /* 縦横の間隔 */
-    justify-content: center;
-    justify-items: center;
-    margin: 0 auto;
-    width: fit-content;
-    max-width: 100%;
-}
 
 /* リザルトボックス */
 .res-grid-box {
