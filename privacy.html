@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | Retina</title>
+    <meta name="description" content="Retinaのプライバシーポリシー。広告、分析、Firebase、対戦機能におけるデータの取り扱いについて説明します。">
+    <link rel="canonical" href="https://takutonkatsu.github.io/Retina/privacy.html">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="Retina_icon_background.png">
+    <style>
+        :root {
+            --bg: #0f1115;
+            --panel: #171a21;
+            --line: rgba(255, 255, 255, 0.12);
+            --text: #f5f7fb;
+            --muted: #a7b0c0;
+            --accent: #00e5ff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+            line-height: 1.75;
+        }
+
+        main {
+            width: min(880px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 48px 0 64px;
+        }
+
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 6vw, 3rem);
+            line-height: 1.12;
+            margin: 28px 0 8px;
+        }
+
+        .meta {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 22px;
+            margin: 16px 0;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            margin: 0 0 10px;
+            color: var(--accent);
+        }
+
+        p, ul {
+            margin: 0 0 12px;
+        }
+
+        ul {
+            padding-left: 1.35rem;
+        }
+
+        li + li {
+            margin-top: 6px;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        footer {
+            color: var(--muted);
+            border-top: 1px solid var(--line);
+            margin-top: 28px;
+            padding-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <a class="brand" href="./">
+                <img src="Retina_icon_background.png" alt="">
+                <span>Retina</span>
+            </a>
+            <h1>Privacy Policy</h1>
+            <p class="meta">制定日: 2026年7月28日</p>
+        </header>
+
+        <section>
+            <h2>1. このポリシーについて</h2>
+            <p>本プライバシーポリシーは、Takuto Kawasaki（以下「開発者」）が提供するゲーム「Retina」（以下「本アプリ」）における情報の取り扱いについて説明するものです。</p>
+            <p>本アプリは、表示された色のRGB値を推測して楽しむゲームです。本アプリは医学的な色覚検査、診断、治療を目的としたものではありません。</p>
+        </section>
+
+        <section>
+            <h2>2. 本アプリが取り扱う情報</h2>
+            <p>本アプリでは、機能提供、品質改善、広告表示のために、以下の情報を取り扱う場合があります。</p>
+            <ul>
+                <li>ゲームのスコア、プレイ履歴、設定、チュートリアル完了状態など、端末内に保存される情報</li>
+                <li>Versusモードで入力されたニックネーム、部屋番号、スコア、ゲーム進行状態などの一時的な対戦データ</li>
+                <li>アプリの利用状況、画面表示、イベント、クラッシュ情報、パフォーマンス情報などの分析データ</li>
+                <li>広告表示、広告効果測定、不正防止のために利用される端末情報、広告識別子、概略的な利用情報</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>3. 端末内保存について</h2>
+            <p>本アプリは、ハイスコア、履歴、Daily Colorの結果、Color Storageに保存した色などを端末内に保存します。これらの情報は、通常、開発者のサーバーへ送信されません。</p>
+            <p>アプリを削除した場合、端末内に保存されたデータも削除されることがあります。</p>
+        </section>
+
+        <section>
+            <h2>4. Firebaseの利用</h2>
+            <p>本アプリのVersusモードでは、リアルタイム対戦機能を提供するためにGoogle Firebase Realtime Databaseを使用します。</p>
+            <p>Versusモードでは、ゲーム進行に必要なニックネーム、スコア、部屋情報などが一時的にFirebaseへ送信されます。これらの情報は対戦機能の提供を目的として利用され、ゲーム終了後または一定期間後に削除される場合があります。</p>
+            <p class="note">Firebaseにおけるデータ処理については、Googleの説明もご確認ください: <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Privacy and Security in Firebase</a></p>
+        </section>
+
+        <section>
+            <h2>5. Google Analyticsの利用</h2>
+            <p>本アプリおよびWeb版では、利用状況の分析とサービス改善のためにGoogle Analyticsを使用する場合があります。</p>
+            <p>Google Analyticsにより収集される情報には、利用イベント、画面表示、端末やブラウザに関する情報などが含まれる場合があります。これらは本アプリの改善、品質確認、利用状況の把握のために利用されます。</p>
+            <p class="note">Googleによるデータの取り扱いについては、<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>をご確認ください。</p>
+        </section>
+
+        <section>
+            <h2>6. 広告配信について</h2>
+            <p>本アプリでは、広告表示のためにGoogle AdMobを使用します。AdMobは、広告配信、広告効果測定、不正行為の防止、サービス改善のために、端末情報、広告識別子、アプリ利用に関する情報などを収集・利用する場合があります。</p>
+            <p>ユーザーは、iOSの設定やAdMobの同意管理画面などを通じて、広告に関するプライバシー設定を変更できる場合があります。</p>
+            <p class="note">AdMobの詳細については、<a href="https://support.google.com/admob/answer/6128543" target="_blank" rel="noopener">AdMob policies and restrictions</a>および<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>をご確認ください。</p>
+        </section>
+
+        <section>
+            <h2>7. 第三者提供・外部送信</h2>
+            <p>本アプリでは、上記のFirebase、Google Analytics、Google AdMobなど、機能提供、分析、広告配信に必要な範囲で第三者のサービスへ情報が送信される場合があります。</p>
+            <p>開発者は、法令に基づく場合を除き、ユーザーを直接特定する情報を第三者へ販売することはありません。</p>
+        </section>
+
+        <section>
+            <h2>8. データの削除について</h2>
+            <p>端末内に保存されたデータは、アプリ内の削除機能、ブラウザのストレージ削除、またはアプリの削除により削除できる場合があります。</p>
+            <p>Versusモードの一時データは、ゲーム終了後または一定期間後に削除される場合があります。</p>
+        </section>
+
+        <section>
+            <h2>9. 子どものプライバシー</h2>
+            <p>本アプリは、13歳未満の児童を主な対象として意図したものではありません。保護者の方は、お子様のアプリ利用、広告表示、オンライン対戦機能の利用について必要に応じて管理してください。</p>
+        </section>
+
+        <section>
+            <h2>10. ポリシーの変更</h2>
+            <p>開発者は、必要に応じて本プライバシーポリシーを変更することがあります。重要な変更がある場合は、本ページ上で告知します。</p>
+        </section>
+
+        <section>
+            <h2>11. お問い合わせ</h2>
+            <p>本プライバシーポリシーに関するお問い合わせは、App StoreのサポートURLまたは本アプリの公開ページを通じてご連絡ください。</p>
+            <p><a href="https://takutonkatsu.github.io/Retina/">https://takutonkatsu.github.io/Retina/</a></p>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 Takuto Kawasaki. All rights reserved.</p>
+        </footer>
+    </main>
+</body>
+</html>

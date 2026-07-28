@@ -18,5 +18,29 @@ Retinaは、RGB数値を推測して色彩感覚を極限まで高めるブラ�
 ## 🛠 Built With
 - HTML5 / CSS3 / JavaScript (Vanilla)
 - Firebase Realtime Database (for Versus mode)
+- Capacitor / AdMob (for mobile app builds)
+
+## 📱 iPhone App Build
+
+```bash
+npm install
+npm run cap:sync
+npm run cap:ios
+```
+
+The mobile build uses Google AdMob test IDs by default.
+Before release, replace the banner ad unit ID in `script.js` and the iOS app ID in:
+
+- `ios/App/App/Info.plist`
+
+The app is intended for iPhone release. The bottom banner is fixed, and the web UI reserves space above it.
+
+## 🔐 Privacy Policy
+
+App Store Connect privacy policy URL:
+
+```text
+https://takutonkatsu.github.io/Retina/privacy.html
+```
 
 © 2023-2026 Takutonkatsu

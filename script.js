@@ -11,6 +11,192 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+const MobileAds = {
+    // AdMob ad unit: Retina_Banner
+    iosBannerAdId: "ca-app-pub-5703232072169520/2877290797",
+    defaultBannerHeight: 64,
+    isInitialized: false,
+    isShowingBanner: false,
+    desiredVisible: false,
+    initializePromise: null,
+
+    getCapacitor: function() {
+        return window.Capacitor || null;
+    },
+
+    getAdMob: function() {
+        const cap = this.getCapacitor();
+        return cap && cap.Plugins ? cap.Plugins.AdMob : null;
+    },
+
+    isNative: function() {
+        const cap = this.getCapacitor();
+        if (!cap) return false;
+        if (typeof cap.isNativePlatform === "function") return cap.isNativePlatform();
+        return !!cap.getPlatform && cap.getPlatform() !== "web";
+    },
+
+    getPlatform: function() {
+        const cap = this.getCapacitor();
+        if (!cap || typeof cap.getPlatform !== "function") return "web";
+        return cap.getPlatform();
+    },
+
+    initialize: async function() {
+        if (!this.isNative()) return;
+        const AdMob = this.getAdMob();
+        if (!AdMob || this.isInitialized) return;
+        if (this.initializePromise) return this.initializePromise;
+
+        this.initializePromise = (async () => {
+            this.reserveBannerSpace();
+            await AdMob.initialize();
+
+            if (AdMob.trackingAuthorizationStatus && AdMob.requestTrackingAuthorization) {
+                try {
+                    const trackingInfo = await AdMob.trackingAuthorizationStatus();
+                    if (trackingInfo && trackingInfo.status === "notDetermined") {
+                        await AdMob.requestTrackingAuthorization();
+                    }
+                } catch (error) {
+                    console.warn("AdMob tracking authorization skipped", error);
+                }
+            }
+
+            if (AdMob.requestConsentInfo) {
+                try {
+                    const consentInfo = await AdMob.requestConsentInfo();
+                    if (consentInfo && !consentInfo.canRequestAds && consentInfo.isConsentFormAvailable && AdMob.showConsentForm) {
+                        await AdMob.showConsentForm();
+                    }
+                } catch (error) {
+                    console.warn("AdMob consent info skipped", error);
+                }
+            }
+
+            if (AdMob.addListener) {
+                AdMob.addListener("bannerAdSizeChanged", (size) => {
+                    if (size && size.height) this.setAdHeight(size.height);
+                });
+                AdMob.addListener("bannerAdLoaded", () => {
+                    this.setAdHeight(this.defaultBannerHeight);
+                });
+                AdMob.addListener("bannerAdFailedToLoad", (error) => {
+                    console.warn("AdMob banner failed to load", error);
+                    this.setAdHeight(0);
+                    this.isShowingBanner = false;
+                });
+            }
+
+            this.isInitialized = true;
+            if (this.desiredVisible) await this.showBanner();
+        })();
+
+        try {
+            await this.initializePromise;
+        } catch (error) {
+            console.warn("AdMob initialization failed", error);
+            this.setAdHeight(0);
+        } finally {
+            this.initializePromise = null;
+        }
+    },
+
+    shouldShowOnScreen: function(screenId) {
+        return this.isNative() && this.getPlatform() === "ios";
+    },
+
+    syncForScreen: function(screenId) {
+        if (this.shouldShowOnScreen(screenId)) this.showBanner();
+        else this.hideBanner();
+    },
+
+    showBanner: async function() {
+        this.desiredVisible = true;
+        if (!this.isNative()) return;
+        this.reserveBannerSpace();
+        if (!this.isInitialized) {
+            await this.initialize();
+            return;
+        }
+        if (this.isShowingBanner) return;
+
+        const AdMob = this.getAdMob();
+        if (!AdMob || !AdMob.showBanner) return;
+
+        try {
+            await AdMob.showBanner({
+                adId: this.iosBannerAdId,
+                adSize: "ADAPTIVE_BANNER",
+                position: "BOTTOM_CENTER",
+                margin: 0
+            });
+            this.isShowingBanner = true;
+            this.setAdHeight(this.defaultBannerHeight);
+        } catch (error) {
+            console.warn("AdMob banner show failed", error);
+            this.setAdHeight(0);
+        }
+    },
+
+    reserveBannerSpace: function() {
+        this.setAdHeight(this.defaultBannerHeight);
+    },
+
+    hideBanner: async function() {
+        this.desiredVisible = false;
+        if (!this.isNative()) return;
+
+        const AdMob = this.getAdMob();
+        if (!AdMob || !this.isInitialized) {
+            this.setAdHeight(0);
+            return;
+        }
+
+        try {
+            if (AdMob.hideBanner) await AdMob.hideBanner();
+        } catch (error) {
+            console.warn("AdMob banner hide failed", error);
+        } finally {
+            this.isShowingBanner = false;
+            this.setAdHeight(0);
+        }
+    },
+
+    showPrivacyOptions: async function() {
+        const AdMob = this.getAdMob();
+        if (AdMob && AdMob.showPrivacyOptionsForm) {
+            await AdMob.showPrivacyOptionsForm();
+        }
+    },
+
+    setAdHeight: function(height) {
+        const px = Math.max(0, Number(height) || 0);
+        document.documentElement.style.setProperty("--mobile-ad-height", px + "px");
+        document.body.classList.toggle("has-mobile-ad", px > 0);
+    }
+};
+window.MobileAds = MobileAds;
+
+const MobileLayout = {
+    iosTopSafeArea: 64,
+
+    apply: function() {
+        const cap = window.Capacitor;
+        const isNative = cap && (
+            (typeof cap.isNativePlatform === "function" && cap.isNativePlatform()) ||
+            (typeof cap.getPlatform === "function" && cap.getPlatform() !== "web")
+        );
+        const isIOS = cap && typeof cap.getPlatform === "function" && cap.getPlatform() === "ios";
+
+        if (!isNative || !isIOS) return;
+
+        document.body.classList.add("capacitor-ios");
+        document.documentElement.style.setProperty("--native-safe-top", this.iosTopSafeArea + "px");
+    }
+};
+window.MobileLayout = MobileLayout;
+
 // ▼ App Controller
 const AppController = {
     alert: function(msg, callback) {
@@ -57,6 +243,7 @@ const AppController = {
         if (['origin', 'rush', 'survival', 'versus', 'daily', 'anotherworld', 'menu'].includes(screenId)) {
             localStorage.setItem('current_screen', screenId);
         }
+        MobileAds.syncForScreen(screenId);
     },
 
     returnToMenu: function() {
@@ -2742,6 +2929,8 @@ window.onload = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const roomParam = urlParams.get('room');
     
+    MobileLayout.apply();
+    MobileAds.initialize();
     MenuLogic.init();
 
     if (!localStorage.getItem('visited')) { 

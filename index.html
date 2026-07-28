@@ -33,7 +33,7 @@
 
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Retina | 色彩感覚テスト - 色彩感覚を、数値化せよ。</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -524,6 +524,9 @@
             <button class="footer-btn privacy-link" onclick="AppController.showPolicy()">
                 <span style="font-size:1rem;">🔒</span> ポリシー
             </button>
+            <a href="privacy.html" class="footer-btn privacy-link">
+                Privacy Policy
+            </a>
             
             <a href="https://www.buymeacoffee.com/takutonkatsu" target="_blank" class="footer-btn bmc-link">
                 <span style="font-size:1.1rem;">☕</span> 開発者を支援
@@ -613,7 +616,10 @@
                 
                 <h4>2. プライバシー (Privacy)</h4>
                 <p>本アプリでは、利用状況の分析とサービス向上のため、Google Analyticsを使用しています。データは匿名で収集され、個人を特定するものではありません。</p>
+                <p>スマートフォンアプリ版では、広告表示のためにGoogle AdMobを使用する場合があります。広告配信に関連して、端末情報や広告識別子等がGoogleにより処理されることがあります。</p>
                 <p>Versusモード（対戦機能）では、ゲーム進行のためにGoogle Firebaseを使用し、一時的にプレイデータ（ニックネーム、スコア等）をサーバーに保存しますが、これらのデータはゲーム終了後に削除、または一定期間後に破棄されます。</p>
+                <p>詳細は <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> をご確認ください。</p>
+                <p><button class="btn-text" onclick="MobileAds.showPrivacyOptions()">広告プライバシー設定を開く</button></p>
                 
                 <h4>3. 禁止事項 (Prohibitions)</h4>
                 <p>サーバーへの過度な負荷をかける行為、不正な手段でのスコア改ざん、他者への迷惑行為を禁止します。</p>

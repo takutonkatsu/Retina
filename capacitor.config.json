@@ -1,0 +1,8 @@
+{
+  "appId": "com.takutonkatsu.retina.rgbcolortrainer2026",
+  "appName": "Retina",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

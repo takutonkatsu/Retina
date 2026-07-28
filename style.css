@@ -24,6 +24,12 @@
     
     /* Rush Mode Accent */
     --accent-rush: #ff9f43;
+
+    --mobile-ad-height: 0px;
+    --app-safe-top: env(safe-area-inset-top, 0px);
+    --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --native-safe-top: 0px;
+    --effective-safe-top: max(var(--app-safe-top), var(--native-safe-top));
 }
 
 * { box-sizing: border-box; }
@@ -36,11 +42,45 @@ html, body {
     background-color: var(--bg-dark); 
     color: var(--text-main); 
     overflow-x: hidden; 
-    min-height: 100vh; 
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex; 
     flex-direction: column;
     touch-action: manipulation;
     /* overscroll-behavior-y: none; ★追加: これでフッター下の引っ張りを無効化 */
+}
+
+body {
+    padding-top: var(--effective-safe-top);
+}
+
+body.capacitor-ios::before {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: var(--effective-safe-top);
+    background: var(--bg-dark);
+    pointer-events: none;
+    z-index: 10001;
+}
+
+body.has-mobile-ad {
+    padding-bottom: calc(var(--mobile-ad-height) + var(--app-safe-bottom));
+}
+
+body.has-mobile-ad::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--mobile-ad-height) + var(--app-safe-bottom));
+    background: var(--bg-dark);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: 9998;
 }
 /* .bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4; }
 .orb-1 { width: 300px; height: 300px; background: #3742fa; top: -50px; left: -50px; }
@@ -1053,7 +1093,7 @@ html, body {
 .daily-rgb-text { font-family: var(--font-mono); font-size: 0.85rem; color: #aaa; }
 
 /* Custom Modals (Compact) */
-.custom-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+.custom-modal-overlay { position: fixed; top: var(--effective-safe-top); left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 2000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
 .custom-modal-box { background: #1a1d24; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7); }
 .custom-modal-box p { color: #fff; font-size: 0.95rem; margin: 0 0 20px; line-height: 1.5; }
 .custom-modal-actions { display: flex; justify-content: center; gap: 10px; }
@@ -1133,7 +1173,7 @@ html, body {
 
 /* Tutorial Styles (Updated) */
 .tutorial-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; top: var(--effective-safe-top); left: 0; width: 100%; height: calc(100% - var(--effective-safe-top));
     background: #0f1115; z-index: 9999;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
     overflow-y: auto; /* スマホで内容が溢れないように */
